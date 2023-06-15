@@ -5,8 +5,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon",
-    "build": "tsc --project ./"
+    "build": "rimraf dist && tsc",
+    "ts.check": "tsc --project tsconfig.json",
+    "add-build": "git add dist"
   },
+  "pre-commit": [
+    "ts.check",
+    "build",
+    "add-build"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -58,8 +65,10 @@
     "nopt": "^1.0.10",
     "normalize-path": "^3.0.0",
     "picomatch": "^2.3.1",
+    "pre-commit": "^1.2.2",
     "pstree.remy": "^1.1.8",
     "readdirp": "^3.6.0",
+    "rimraf": "^5.0.1",
     "semver": "^5.7.1",
     "simple-update-notifier": "^1.1.0",
     "supports-color": "^5.5.0",
