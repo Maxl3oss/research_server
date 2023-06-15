@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id       String     @id @unique @default(cuid())
+  fname    String
+  lname    String
+  email    String     @unique
+  password String
+  profile  String?
+  role_id  Int        @db.TinyInt
+  status   Int        @db.TinyInt
+  research Research[]
+}
+
+// status 1=use, 2=notVerified, 3=delete
+model Research {
+  id                Int      @id @default(autoincrement())
+  title             String
+  title_alternative String?
+  creator           String?
+  subject           String
+  description       String
+  publisher         String?
+  type              String
+  contributor       String
+  source            String
+  rights            String
+  year_creation     DateTime
+  created_date      DateTime @default(now())
+  updated_date      DateTime @updatedAt
+  file_url          String
+  image_url         String
+  created_by        String
+  createdBy         User?    @relation(fields: [created_by], references: [id])
+  status            Int      @db.TinyInt
+}
