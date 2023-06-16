@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient, Research } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 import { sendErrorResponse, sendSuccessResponse, createPagination } from "../interface/response.interface";
 import cloud from "../interface/cloudinary.interface";
 const prisma = new PrismaClient();
@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 async function Create(req: Request, res: Response) {
   try {
     // variable
-    const data: Research = JSON.parse(req.body.data);
+    const data = JSON.parse(req.body.data);
     const files = req.files as Express.Multer.File[];
     let pdf_url = "", image_url = "";
     // upload file
@@ -98,7 +98,7 @@ async function GetResearch(req: Request, res: Response) {
 
 async function UpdateResearch(req: Request, res: Response) {
   try {
-    const data: Research = req.body;
+    const data = req.body;
     const queryResearch = await prisma.research.update({
       where: {
         id: data.id,
