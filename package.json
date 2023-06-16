@@ -8,7 +8,8 @@
     "build": "rm -rf dist && tsc",
     "ts.check": "tsc --project tsconfig.json",
     "server": "node dist/index.js",
-    "add-build": "git add dist"
+    "add-build": "git add dist",
+    "postinstall": "prisma generate"
   },
   "pre-commit": [
     "ts.check",
