@@ -5,8 +5,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon",
-    "build": "rimraf dist && tsc",
+    "build": "rm -rf dist && tsc",
     "ts.check": "tsc --project tsconfig.json",
+    "server": "node dist/index.js",
     "add-build": "git add dist"
   },
   "pre-commit": [
