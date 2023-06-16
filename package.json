@@ -9,7 +9,7 @@
     "ts.check": "tsc --project tsconfig.json",
     "server": "node dist/index.js",
     "add-build": "git add dist",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate --schema=./src/prisma/schema.prisma"
   },
   "pre-commit": [
     "ts.check",
