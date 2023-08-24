@@ -12,10 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UploadImageToCloud = exports.UpdateResearch = exports.GetResearch = exports.Create = void 0;
+exports.DeleteResearch = exports.UploadImageToCloud = exports.UpdateResearch = exports.GetResearch = exports.Create = void 0;
 const client_1 = require("@prisma/client");
 const response_interface_1 = require("../interface/response.interface");
-const cloudinary_interface_1 = __importDefault(require("../interface/cloudinary.interface"));
+const cloudinary_util_1 = __importDefault(require("../utils/cloudinary.util"));
 const prisma = new client_1.PrismaClient();
 function Create(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -28,10 +28,10 @@ function Create(req, res) {
             const uploadFile = (files) => __awaiter(this, void 0, void 0, function* () {
                 if (typeof files === "object" && files !== null) {
                     if ('image' in files) {
-                        yield cloudinary_interface_1.default.uploadImage(files.image[0]["path"]).then((url) => (image_url = url)).catch((err) => (0, response_interface_1.sendErrorResponse)(res, err));
+                        yield cloudinary_util_1.default.uploadImage(files.image[0]["path"]).then((url) => (image_url = url)).catch((err) => (0, response_interface_1.sendErrorResponse)(res, err));
                     }
                     if ('pdf' in files) {
-                        yield cloudinary_interface_1.default.uploadPDF(files.pdf[0]["path"]).then((url) => (pdf_url = url)).catch((err) => (0, response_interface_1.sendErrorResponse)(res, err));
+                        yield cloudinary_util_1.default.uploadPDF(files.pdf[0]["path"]).then((url) => (pdf_url = url)).catch((err) => (0, response_interface_1.sendErrorResponse)(res, err));
                     }
                 }
                 else {
@@ -56,7 +56,7 @@ function Create(req, res) {
                     file_url: pdf_url,
                     image_url: image_url,
                     status: data.status,
-                    created_by: data.created_by,
+                    user_id: data.user_id,
                 }
             });
             (0, response_interface_1.sendSuccessResponse)(res, "Create research successful.", undefined);
@@ -74,8 +74,8 @@ exports.Create = Create;
 function GetResearch(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const page = Number(req.params.page) || 1;
-            const pageSize = Number(req.params.pageSize) || 10;
+            const page = Number(req.query.page) || 1;
+            const pageSize = Number(req.query.pageSize) || 10;
             // const { page = 1, pageSize = 10 } = Number(req.params);
             const skip = (page - 1) * pageSize;
             const queryResearch = yield prisma.research.findMany({
@@ -85,11 +85,12 @@ function GetResearch(req, res) {
                     status: 1,
                 },
                 include: {
-                    createdBy: {
+                    user_info: {
                         select: {
-                            fname: true,
-                            lname: true,
-                            profile: true,
+                            prefix: true,
+                            first_name: true,
+                            last_name: true,
+                            // profile: true,
                         }
                     },
                 },
@@ -159,10 +160,10 @@ function UploadImageToCloud(req, res) {
             const files = req.files;
             // if (typeof file === "object" && file !== null && 'image' in file) {
             if (typeof files === "object" && files !== null && "image" in files) {
-                yield cloudinary_interface_1.default.uploadImage(files.image[0]["path"]).then((url) => image = url);
+                yield cloudinary_util_1.default.uploadImage(files.image[0]["path"]).then((url) => image = url);
             }
             if (typeof files === "object" && "pdf" in files) {
-                yield cloudinary_interface_1.default.uploadPDF(files.pdf[0]["path"]).then((url) => pdf = url);
+                yield cloudinary_util_1.default.uploadPDF(files.pdf[0]["path"]).then((url) => pdf = url);
             }
             res.json({ mes: "ยังไง", image, pdf });
             // const result = await cloud..uploader.upload(file.path);
@@ -176,4 +177,30 @@ function UploadImageToCloud(req, res) {
     });
 }
 exports.UploadImageToCloud = UploadImageToCloud;
+function DeleteResearch(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { id } = req.params;
+            const queryResearch = yield prisma.research.update({
+                where: {
+                    id: Number(id),
+                },
+                data: {
+                    status: 0,
+                },
+            });
+            if (!queryResearch)
+                (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+            (0, response_interface_1.sendSuccessResponse)(res, "Delete research successful.", undefined);
+        }
+        catch (err) {
+            console.error(err);
+            (0, response_interface_1.sendErrorResponse)(res, "Internal server error.");
+        }
+        finally {
+            yield prisma.$disconnect();
+        }
+    });
+}
+exports.DeleteResearch = DeleteResearch;
 //# sourceMappingURL=research.controller.js.map

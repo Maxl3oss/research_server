@@ -59,4 +59,4 @@ exports.delete = (url) => {
 };
 const cloud = { uploadImage, uploadPDF };
 exports.default = cloud;
-//# sourceMappingURL=cloudinary.interface.js.map
+//# sourceMappingURL=cloudinary.util.js.map

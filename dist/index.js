@@ -9,8 +9,9 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const body_parser_1 = __importDefault(require("body-parser"));
 require("dotenv").config();
 // import routes
-const auth_route_1 = __importDefault(require("./routes/auth.route"));
-const research_route_1 = __importDefault(require("./routes/research.route"));
+const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
+const user_routes_1 = __importDefault(require("./routes/user.routes"));
+const research_routes_1 = __importDefault(require("./routes/research.routes"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
 // Enable CORS
@@ -30,8 +31,9 @@ app.use(body_parser_1.default.json({ limit: "50mb" }));
 app.use(body_parser_1.default.urlencoded({ extended: true, limit: "50mb" }));
 // PUBLIC PATH
 app.get("/", (req, res) => res.send("Express + TypeScript Server"));
-app.use("/api/auth", auth_route_1.default);
-app.use("/api/research", research_route_1.default);
+app.use("/api/auth", auth_routes_1.default);
+app.use("/api/user", user_routes_1.default);
+app.use("/api/research", research_routes_1.default);
 app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
 });

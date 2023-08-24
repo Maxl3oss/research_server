@@ -30,10 +30,11 @@ const express_1 = __importDefault(require("express"));
 const researchController = __importStar(require("../controllers/research.controller"));
 const router = express_1.default.Router();
 require("dotenv").config();
-const multer_interface_1 = __importDefault(require("../interface/multer.interface"));
-router.post("/create", multer_interface_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.Create);
-router.post("/upload", multer_interface_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UploadImageToCloud);
-router.get("/get/:page/:pageSize", researchController.GetResearch);
+const multer_util_1 = __importDefault(require("../utils/multer.util"));
+router.post("/create", multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.Create);
+router.post("/upload", multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UploadImageToCloud);
+router.get("/get-all", researchController.GetResearch);
 router.get("/update", researchController.UpdateResearch);
+router.delete("/delete/:id", researchController.DeleteResearch);
 exports.default = router;
-//# sourceMappingURL=research.route.js.map
+//# sourceMappingURL=research.routes.js.map

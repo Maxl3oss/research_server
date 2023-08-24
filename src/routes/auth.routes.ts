@@ -4,6 +4,7 @@ const router = express.Router();
 require("dotenv").config();
 
 router.post("/login", authController.Login);
-router.get("/profile", authController.GetProfile);
+router.post("/register", authController.Register);
+router.get("/verify-email", authController.verifyEmail);
 
 export default router;

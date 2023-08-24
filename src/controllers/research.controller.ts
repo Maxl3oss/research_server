@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Research } from '@prisma/client';
 import { sendErrorResponse, sendSuccessResponse, createPagination } from "../interface/response.interface";
-import cloud from "../interface/cloudinary.interface";
+import cloud from "../utils/cloudinary.util";
 const prisma = new PrismaClient();
 
 async function Create(req: Request, res: Response) {
   try {
     // variable
-    const data = JSON.parse(req.body.data);
+    const data: Research = JSON.parse(req.body.data);
     const files = req.files as Express.Multer.File[];
     let pdf_url = "", image_url = "";
     // upload file
@@ -42,7 +42,7 @@ async function Create(req: Request, res: Response) {
         file_url: pdf_url,
         image_url: image_url,
         status: data.status,
-        created_by: data.created_by,
+        user_id: data.user_id,
       }
     });
 
@@ -58,8 +58,8 @@ async function Create(req: Request, res: Response) {
 
 async function GetResearch(req: Request, res: Response) {
   try {
-    const page = Number(req.params.page) || 1;
-    const pageSize = Number(req.params.pageSize) || 10;
+    const page = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || 10;
     // const { page = 1, pageSize = 10 } = Number(req.params);
     const skip = (page - 1) * pageSize;
     const queryResearch = await prisma.research.findMany({
@@ -69,11 +69,12 @@ async function GetResearch(req: Request, res: Response) {
         status: 1,
       },
       include: {
-        createdBy: {
+        user_info: {
           select: {
-            fname: true,
-            lname: true,
-            profile: true,
+            prefix: true,
+            first_name: true,
+            last_name: true,
+            // profile: true,
           }
         },
       },
@@ -98,7 +99,7 @@ async function GetResearch(req: Request, res: Response) {
 
 async function UpdateResearch(req: Request, res: Response) {
   try {
-    const data = req.body;
+    const data: Research = req.body;
     const queryResearch = await prisma.research.update({
       where: {
         id: data.id,
@@ -154,4 +155,29 @@ async function UploadImageToCloud(req: Request, res: Response) {
   }
 }
 
-export { Create, GetResearch, UpdateResearch, UploadImageToCloud }
+async function DeleteResearch(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const queryResearch = await prisma.research.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        status: 0,
+      },
+    });
+
+    if (!queryResearch) sendErrorResponse(res, "Research not found.", 404);
+
+    sendSuccessResponse(res, "Delete research successful.", undefined);
+
+  } catch (err) {
+    console.error(err);
+    sendErrorResponse(res, "Internal server error.");
+  } finally {
+    await prisma.$disconnect();
+  }
+
+}
+
+export { Create, GetResearch, UpdateResearch, UploadImageToCloud, DeleteResearch }

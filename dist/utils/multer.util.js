@@ -26,4 +26,4 @@ const uploads = (0, multer_1.default)({
 });
 const iMulter = { uploads, fileFilter };
 exports.default = iMulter;
-//# sourceMappingURL=multer.interface.js.map
+//# sourceMappingURL=multer.util.js.map

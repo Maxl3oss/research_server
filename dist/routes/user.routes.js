@@ -4,10 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const authController = require("../controllers/auth.controller");
+const userController = require("../controllers/user.controller");
 const router = express_1.default.Router();
 require("dotenv").config();
-router.post("/login", authController.Login);
-router.get("/profile", authController.GetProfile);
+router.get("/fetch-user", userController.GetProfile);
 exports.default = router;
-//# sourceMappingURL=auth.route.js.map
+//# sourceMappingURL=user.routes.js.map
