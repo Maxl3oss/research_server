@@ -16,8 +16,8 @@ exports.verifyEmail = exports.Register = exports.Login = void 0;
 const client_1 = require("@prisma/client");
 const response_interface_1 = require("../interface/response.interface");
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const nodemailer_1 = __importDefault(require("nodemailer"));
+const jsonwebtoken_1 = require("jsonwebtoken");
+const nodemailer_1 = require("nodemailer");
 require("dotenv").config();
 const prisma = new client_1.PrismaClient();
 const TOKEN_SECRET = process.env.TOKEN_SECRET;
@@ -29,7 +29,6 @@ function Login(req, res) {
             const GetUser = yield prisma.user.findFirst({
                 where: {
                     email: email,
-                    password: password,
                     OR: [
                         { status: 1 },
                         { status: 2 },
@@ -38,15 +37,22 @@ function Login(req, res) {
                 select: {
                     first_name: true,
                     last_name: true,
+                    profile: true,
                     email: true,
                     status: true,
+                    password: true,
                 },
             });
-            if (!GetUser)
-                return (0, response_interface_1.sendErrorResponse)(res, "Email or password invalid.", 404);
-            if ((GetUser === null || GetUser === void 0 ? void 0 : GetUser.status) === 2)
-                return (0, response_interface_1.sendErrorResponse)(res, "Your email has not been verified.", 401);
-            (0, response_interface_1.sendSuccessResponse)(res, "Login successful.", GetUser);
+            if (GetUser && password && email) {
+                // Compare the provided plaintext password with the hashed password from the database
+                if ((GetUser === null || GetUser === void 0 ? void 0 : GetUser.status) === 2)
+                    return (0, response_interface_1.sendErrorResponse)(res, "Your email has not been verified.", 401);
+                const isPasswordMatch = bcrypt_1.default.compareSync(password, GetUser.password);
+                if (isPasswordMatch) {
+                    return (0, response_interface_1.sendSuccessResponse)(res, "Login successful.", GetUser);
+                }
+            }
+            return (0, response_interface_1.sendErrorResponse)(res, "Email or password invalid.", 200);
         }
         catch (err) {
             console.error(err);
@@ -99,7 +105,7 @@ function verifyEmail(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const QEmail = req.query.email;
-            const { email } = jsonwebtoken_1.default.verify(QEmail, TOKEN_SECRET);
+            const { email } = (0, jsonwebtoken_1.verify)(QEmail, TOKEN_SECRET);
             const checkEmail = yield prisma.user.findFirst({
                 where: {
                     email: email,
@@ -144,10 +150,10 @@ function verifyEmail(req, res) {
 exports.verifyEmail = verifyEmail;
 const SendEmail = (data, res) => __awaiter(void 0, void 0, void 0, function* () {
     //send verify email
-    const tokenMail = jsonwebtoken_1.default.sign({ email: data.email }, TOKEN_SECRET, {
+    const tokenMail = (0, jsonwebtoken_1.sign)({ email: data.email }, TOKEN_SECRET, {
         expiresIn: "1h",
     });
-    const tranSporter = nodemailer_1.default.createTransport({
+    const tranSporter = (0, nodemailer_1.createTransport)({
         service: "gmail",
         auth: {
             user: process.env.EMAIL,
@@ -163,17 +169,16 @@ const SendEmail = (data, res) => __awaiter(void 0, void 0, void 0, function* () 
               <h2>Thanks for registering on our site.</h2>
               <h4>Please verify your mail to continue...</h4>
               <br />
-              <p>${HOST_WEB}/api/auth/verify-email?email=${tokenMail}</p>
               <br />
-              <button style="background-color: #222; color: white; border-radius: 20%; padding: 15px;">
-                <a style="color: inherit; text-decoration: inherit;" href="${HOST_WEB}/api/auth/verify-email?email=${tokenMail}">
+                <a style="color: inherit; text-decoration: inherit; background-color: #222; color: white; border-radius: 20%; padding: 15px;" 
+                  href="${HOST_WEB}/api/auth/verify-email?email=${tokenMail}"
+                >
                   Verify Your Email
                 </a>
-              </button>
            </div>
     `
     };
-    yield tranSporter.sendMail(option, (err, info) => {
+    tranSporter.sendMail(option, (err, info) => {
         if (err) {
             console.log("error => ", err);
             return (0, response_interface_1.sendErrorResponse)(res, `ERROR ${err}`, 500);

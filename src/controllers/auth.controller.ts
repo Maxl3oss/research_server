@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { PrismaClient, User } from "@prisma/client";
 import { sendErrorResponse, sendSuccessResponse } from "../interface/response.interface";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
+import { sign, verify } from "jsonwebtoken";
+import { createTransport } from "nodemailer";
 import { TokenPayloadVerify, UserEmail } from "../interface/user.interface";
 require("dotenv").config();
 
@@ -15,10 +15,10 @@ const HOST_WEB = process.env.HOST_WEB as string;
 async function Login(req: Request, res: Response) {
   try {
     const { email, password }: UserEmail = req.body;
+
     const GetUser = await prisma.user.findFirst({
       where: {
         email: email,
-        password: password,
         OR: [
           { status: 1 },
           { status: 2 },
@@ -27,15 +27,25 @@ async function Login(req: Request, res: Response) {
       select: {
         first_name: true,
         last_name: true,
+        profile: true,
         email: true,
         status: true,
+        password: true,
       },
     });
 
-    if (!GetUser) return sendErrorResponse(res, "Email or password invalid.", 404);
-    if (GetUser?.status === 2) return sendErrorResponse(res, "Your email has not been verified.", 401);
+    if (GetUser && password && email) {
+      // Compare the provided plaintext password with the hashed password from the database
+      if (GetUser?.status === 2) return sendErrorResponse(res, "Your email has not been verified.", 401);
 
-    sendSuccessResponse(res, "Login successful.", GetUser);
+      const isPasswordMatch = bcrypt.compareSync(password, GetUser.password);
+
+      if (isPasswordMatch) {
+        return sendSuccessResponse(res, "Login successful.", GetUser);
+      }
+    }
+
+    return sendErrorResponse(res, "Email or password invalid.", 200);
 
   } catch (err) {
     console.error(err);
@@ -48,6 +58,7 @@ async function Login(req: Request, res: Response) {
 async function Register(req: Request, res: Response) {
   try {
     const data: User = req.body;
+
     const hashPass = await bcrypt.hash(data.password, 9);
 
     const checkUser = await prisma.user.findFirst({
@@ -82,7 +93,7 @@ async function Register(req: Request, res: Response) {
 async function verifyEmail(req: Request, res: Response) {
   try {
     const QEmail: string | undefined = req.query.email as string;
-    const { email } = jwt.verify(QEmail, TOKEN_SECRET) as TokenPayloadVerify;
+    const { email } = verify(QEmail, TOKEN_SECRET) as TokenPayloadVerify;
 
     const checkEmail = await prisma.user.findFirst({
       where: {
@@ -129,11 +140,11 @@ async function verifyEmail(req: Request, res: Response) {
 
 const SendEmail = async (data: User, res: Response) => {
   //send verify email
-  const tokenMail = jwt.sign({ email: data.email }, TOKEN_SECRET, {
+  const tokenMail = sign({ email: data.email }, TOKEN_SECRET, {
     expiresIn: "1h",
   });
 
-  const tranSporter = nodemailer.createTransport({
+  const tranSporter = createTransport({
     service: "gmail",
     auth: {
       user: process.env.EMAIL,
@@ -150,17 +161,16 @@ const SendEmail = async (data: User, res: Response) => {
               <h2>Thanks for registering on our site.</h2>
               <h4>Please verify your mail to continue...</h4>
               <br />
-              <p>${HOST_WEB}/api/auth/verify-email?email=${tokenMail}</p>
               <br />
-              <button style="background-color: #222; color: white; border-radius: 20%; padding: 15px;">
-                <a style="color: inherit; text-decoration: inherit;" href="${HOST_WEB}/api/auth/verify-email?email=${tokenMail}">
+                <a style="color: inherit; text-decoration: inherit; background-color: #222; color: white; border-radius: 20%; padding: 15px;" 
+                  href="${HOST_WEB}/api/auth/verify-email?email=${tokenMail}"
+                >
                   Verify Your Email
                 </a>
-              </button>
            </div>
     `
   };
-  await tranSporter.sendMail(option, (err, info) => {
+  tranSporter.sendMail(option, (err, info) => {
     if (err) {
       console.log("error => ", err);
       return sendErrorResponse(res, `ERROR ${err}`, 500);
