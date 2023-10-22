@@ -22,30 +22,73 @@ model User {
   role_id    Int        @db.TinyInt
   status     Int        @db.TinyInt
   research   Research[]
+  Likes      Likes[]
+  Rating     Rating[]
 }
 
-// 1=user 2=admin
-// status 0=delete, 1=use, 2=notVerified
+//* ----------------------------------------
+//* 1=user 2=admin
+//* status 0=delete, 1=use, 2=notVerified
+//* ----------------------------------------
 model Research {
   id                Int      @id @default(autoincrement())
   title             String
   title_alternative String?
   creator           String?
   subject           String
-  description       String
+  description       String   @db.VarChar(1020)
   publisher         String?
-  type              String
   contributor       String
   source            String
   rights            String
   year_creation     DateTime
   created_date      DateTime @default(now())
   updated_date      DateTime @updatedAt
+  status            Int      @default(2) @db.TinyInt
   file_url          String
+  file_name         String
   image_url         String
-  status            Int      @db.TinyInt
   user_id           String
+  views             Int      @default(0)
   user_info         User     @relation(fields: [user_id], references: [id])
+  tags_id           Int
+  tags_info         Tags     @relation(fields: [tags_id], references: [id])
+  Likes             Likes[]
+  Rating            Rating[]
 
-  @@index([user_id])
+  @@index([user_id], name: "idx_user_research")
+  @@index([tags_id], name: "idx_tags_research")
+  @@index([user_id, tags_id], name: "idx_user_tags_research") // Composite index on 'user_id' and 'research_id'
+}
+
+model Likes {
+  id            Int      @id @default(autoincrement())
+  research_id   Int
+  research_info Research @relation(fields: [research_id], references: [id])
+  user_id       String
+  user_info     User     @relation(fields: [user_id], references: [id])
+
+  // Index Definitions
+  @@index([user_id], name: "idx_user_likes") // Index on the 'user_id' column
+  @@index([research_id], name: "idx_research_likes") // Index on the 'research_id' column
+  @@index([user_id, research_id], name: "idx_user_research_likes") // Composite index on 'user_id' and 'research_id'
+}
+
+model Tags {
+  id       Int        @id @default(autoincrement())
+  name     String
+  Research Research[]
+}
+
+model Rating {
+  id            Int      @id @default(autoincrement())
+  rating        Decimal
+  research_id   Int
+  research_info Research @relation(fields: [research_id], references: [id])
+  user_id       String
+  user_info     User     @relation(fields: [user_id], references: [id])
+
+  @@index([user_id], name: "idx_user_rating")
+  @@index([research_id], name: "idx_research_rating")
+  @@index([user_id, research_id], name: "idx_user_research_rating")
 }

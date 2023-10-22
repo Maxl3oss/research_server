@@ -25,12 +25,15 @@ async function Login(req: Request, res: Response) {
         ],
       },
       select: {
+        id: true,
+        email: true,
+        password: true,
+        profile: true,
         first_name: true,
         last_name: true,
-        profile: true,
-        email: true,
         status: true,
-        password: true,
+        role_id: true,
+        prefix: true,
       },
     });
 
@@ -40,8 +43,10 @@ async function Login(req: Request, res: Response) {
 
       const isPasswordMatch = bcrypt.compareSync(password, GetUser.password);
 
+        console.log(isPasswordMatch)
       if (isPasswordMatch) {
-        return sendSuccessResponse(res, "Login successful.", GetUser);
+        const { password, ...GetUserWithPassword } = GetUser;
+        return sendSuccessResponse(res, "Login successful.", GetUserWithPassword);
       }
     }
 

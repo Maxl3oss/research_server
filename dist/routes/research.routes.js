@@ -33,8 +33,11 @@ require("dotenv").config();
 const multer_util_1 = __importDefault(require("../utils/multer.util"));
 router.post("/create", multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.Create);
 router.post("/upload", multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UploadImageToCloud);
+router.put("/update/:id", multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UpdateResearch);
 router.get("/get-all", researchController.GetResearch);
-router.get("/update", researchController.UpdateResearch);
+router.get("/get-detail/:userId", researchController.GetResearchDetailById);
+router.get("/get/:userId", researchController.GetResearchByUserId);
+router.post("/rating/:researchId", researchController.RatingStarsResearch);
 router.delete("/delete/:id", researchController.DeleteResearch);
 exports.default = router;
 //# sourceMappingURL=research.routes.js.map

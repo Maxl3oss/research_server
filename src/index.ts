@@ -7,6 +7,7 @@ require("dotenv").config();
 import authRoutes from "./routes/auth.routes";
 import userRoutes from "./routes/user.routes";
 import researchRoutes from "./routes/research.routes";
+import tagsRoutes from "./routes/tags.routes";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -31,6 +32,7 @@ app.get("/", (req, res) => res.send("Express + TypeScript Server"));
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/research", researchRoutes);
+app.use("/api/tags", tagsRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
