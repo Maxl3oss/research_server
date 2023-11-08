@@ -23,9 +23,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RatingStarsResearch = exports.GetResearchDetailById = exports.GetResearchByUserId = exports.DeleteResearch = exports.UploadImageToCloud = exports.UpdateResearch = exports.GetResearch = exports.Create = void 0;
+exports.RatingStarsResearch = exports.DeleteResearch = exports.UploadImageToCloud = exports.UpdateResearch = exports.GetResearchDetailById = exports.GetResearchByUserId = exports.GetResearch = exports.Create = void 0;
 const client_1 = require("@prisma/client");
 const response_interface_1 = require("../interface/response.interface");
+const helper_util_1 = require("../utils/helper.util");
 const cloudinary_util_1 = __importDefault(require("../utils/cloudinary.util"));
 const prisma = new client_1.PrismaClient();
 function Create(req, res) {
@@ -34,7 +35,7 @@ function Create(req, res) {
             // variable
             const data = req.body ? req.body : {};
             // upload file
-            const { image_url, pdf_url, pdf_name } = yield uploadFilesHelper(req.files, res);
+            const { image_url, pdf_url, pdf_name } = yield (0, helper_util_1.uploadFilesHelper)(req.files, res);
             // create data
             yield prisma.research.create({
                 data: {
@@ -153,9 +154,10 @@ function GetResearchByUserId(req, res) {
                     description: true,
                 }
             });
+            const countResearchUser = yield prisma.research.count({ where: { user_id: req.params.userId || "" } });
             if (!queryResearch)
                 (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
-            (0, response_interface_1.sendSuccessResponse)(res, "success", queryResearch, (0, response_interface_1.createPagination)(page, pageSize, total));
+            (0, response_interface_1.sendSuccessResponse)(res, "success", { countResearch: countResearchUser, dataResearch: queryResearch }, (0, response_interface_1.createPagination)(page, pageSize, total), 200, true);
         }
         catch (err) {
             console.error(err);
@@ -204,11 +206,16 @@ function GetResearchDetailById(req, res) {
             });
             if (!queryResearch)
                 (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+            const query_like_count = yield prisma.likes.count({
+                where: {
+                    research_id: queryResearch[0].id,
+                }
+            });
             // calculator avg
             const researchWithAverageRating = queryResearch.map((_a) => {
                 var _b, _c;
                 var { Rating, Likes } = _a, researchItem = __rest(_a, ["Rating", "Likes"]);
-                return Object.assign(Object.assign({}, researchItem), { rating_id: ((_b = Rating[0]) === null || _b === void 0 ? void 0 : _b.id) || null, average_rating: ((_c = Rating[0]) === null || _c === void 0 ? void 0 : _c.rating) || 0, like_info: Likes[0] || null });
+                return Object.assign(Object.assign({}, researchItem), { rating_id: ((_b = Rating[0]) === null || _b === void 0 ? void 0 : _b.id) || null, average_rating: ((_c = Rating[0]) === null || _c === void 0 ? void 0 : _c.rating) || 0, like: (Likes === null || Likes === void 0 ? void 0 : Likes.length) > 0, likes_count: query_like_count });
             });
             if (queryResearch[0].user_id !== (req.params.userId || "")) {
                 yield prisma.research.update({
@@ -240,7 +247,7 @@ function UpdateResearch(req, res) {
             // variable
             const data = req.body ? req.body : {};
             // upload file
-            const { image_url, pdf_url, pdf_name } = yield uploadFilesHelper(req.files, res);
+            const { image_url, pdf_url, pdf_name } = yield (0, helper_util_1.uploadFilesHelper)(req.files, res);
             // update data
             const queryResearch = yield prisma.research.update({
                 where: {
@@ -370,38 +377,4 @@ function RatingStarsResearch(req, res) {
     });
 }
 exports.RatingStarsResearch = RatingStarsResearch;
-function uploadFilesHelper(files, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let image_url = "";
-        let pdf_url = "";
-        let pdf_name = "";
-        if (typeof files === "object" && files !== null) {
-            if ('image' in files && files.image.length > 0) {
-                try {
-                    const imageUrl = yield cloudinary_util_1.default.uploadImage(files.image[0]["path"]);
-                    image_url = imageUrl;
-                }
-                catch (err) {
-                    (0, response_interface_1.sendErrorResponse)(res, err.toString(), 404);
-                    return { image_url: "", pdf_url: "", pdf_name: "" };
-                }
-            }
-            if ('pdf' in files && files.pdf.length > 0) {
-                try {
-                    const pdfUrl = yield cloudinary_util_1.default.uploadPDF(files.pdf[0]["path"]);
-                    pdf_url = pdfUrl;
-                }
-                catch (err) {
-                    (0, response_interface_1.sendErrorResponse)(res, err.toString(), 404);
-                    return { image_url: "", pdf_url: "", pdf_name: "" };
-                }
-            }
-            return { image_url: image_url, pdf_url: pdf_url, pdf_name: pdf_name };
-        }
-        else {
-            (0, response_interface_1.sendErrorResponse)(res, "file not found", 404);
-            return { image_url: "", pdf_url: "", pdf_name: "" };
-        }
-    });
-}
 //# sourceMappingURL=research.controller.js.map

@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { PrismaClient, Research } from '@prisma/client';
 import { sendErrorResponse, sendSuccessResponse, createPagination } from "../interface/response.interface";
+import { uploadFilesHelper } from "../utils/helper.util";
 import cloud from "../utils/cloudinary.util";
 const prisma = new PrismaClient();
 
-async function Create(req: Request, res: Response) {
+export async function Create(req: Request, res: Response) {
   try {
     // variable
     const data: Research = req.body ? req.body : {};
@@ -42,7 +43,7 @@ async function Create(req: Request, res: Response) {
   }
 }
 
-async function GetResearch(req: Request, res: Response) {
+export async function GetResearch(req: Request, res: Response) {
   try {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
@@ -104,7 +105,7 @@ async function GetResearch(req: Request, res: Response) {
   }
 }
 
-async function GetResearchByUserId(req: Request, res: Response) {
+export async function GetResearchByUserId(req: Request, res: Response) {
   try {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
@@ -129,10 +130,11 @@ async function GetResearchByUserId(req: Request, res: Response) {
         description: true,
       }
     });
+    const countResearchUser = await prisma.research.count({ where: { user_id: req.params.userId || "" } });
 
     if (!queryResearch) sendErrorResponse(res, "Research not found.", 404);
 
-    sendSuccessResponse(res, "success", queryResearch, createPagination(page, pageSize, total));
+    sendSuccessResponse(res, "success", { countResearch: countResearchUser, dataResearch: queryResearch }, createPagination(page, pageSize, total), 200, true);
 
   } catch (err) {
     console.error(err);
@@ -142,7 +144,7 @@ async function GetResearchByUserId(req: Request, res: Response) {
   }
 }
 
-async function GetResearchDetailById(req: Request, res: Response) {
+export async function GetResearchDetailById(req: Request, res: Response) {
   try {
     // console.log(req?.query);
     const { id = 0 } = req?.query || {};
@@ -178,9 +180,14 @@ async function GetResearchDetailById(req: Request, res: Response) {
     });
 
     if (!queryResearch) sendErrorResponse(res, "Research not found.", 404);
+    const query_like_count = await prisma.likes.count({
+      where: {
+        research_id: queryResearch[0].id,
+      }
+    });
     // calculator avg
     const researchWithAverageRating = queryResearch.map(({ Rating, Likes, ...researchItem }) => {
-      return { ...researchItem, rating_id: Rating[0]?.id || null, average_rating: Rating[0]?.rating || 0, like_info: Likes[0] || null };
+      return { ...researchItem, rating_id: Rating[0]?.id || null, average_rating: Rating[0]?.rating || 0, like: Likes?.length > 0 , likes_count: query_like_count};
     });
 
     if (queryResearch[0].user_id !== (req.params.userId || "")) {
@@ -206,7 +213,7 @@ async function GetResearchDetailById(req: Request, res: Response) {
   }
 }
 
-async function UpdateResearch(req: Request, res: Response) {
+export async function UpdateResearch(req: Request, res: Response) {
   try {
     // variable
     const data: Research = req.body ? req.body : {};
@@ -247,7 +254,7 @@ async function UpdateResearch(req: Request, res: Response) {
   }
 }
 
-async function UploadImageToCloud(req: Request, res: Response) {
+export async function UploadImageToCloud(req: Request, res: Response) {
   try {
     let image = "", pdf = "";
     const files = req.files;
@@ -268,7 +275,7 @@ async function UploadImageToCloud(req: Request, res: Response) {
   }
 }
 
-async function DeleteResearch(req: Request, res: Response) {
+export async function DeleteResearch(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const queryResearch = await prisma.research.update({
@@ -293,7 +300,7 @@ async function DeleteResearch(req: Request, res: Response) {
 
 }
 
-async function RatingStarsResearch(req: Request, res: Response) {
+export async function RatingStarsResearch(req: Request, res: Response) {
   try {
     // variable
     const { userId, ratingId, rating }: { userId: string, ratingId: number, rating: number } = req.body ? req.body : {};
@@ -331,38 +338,3 @@ async function RatingStarsResearch(req: Request, res: Response) {
     await prisma.$disconnect();
   }
 }
-
-async function uploadFilesHelper(files: any, res: Response) {
-  let image_url: string = "";
-  let pdf_url: string = "";
-  let pdf_name: string = "";
-
-  if (typeof files === "object" && files !== null) {
-    if ('image' in files && files.image.length > 0) {
-      try {
-        const imageUrl = await cloud.uploadImage(files.image[0]["path"]);
-        image_url = imageUrl as string;
-      } catch (err) {
-        sendErrorResponse(res, (err as string).toString(), 404);
-        return { image_url: "", pdf_url: "", pdf_name: "" };
-      }
-    }
-
-    if ('pdf' in files && files.pdf.length > 0) {
-      try {
-        const pdfUrl = await cloud.uploadPDF(files.pdf[0]["path"]);
-        pdf_url = pdfUrl as string;
-      } catch (err) {
-        sendErrorResponse(res, (err as string).toString(), 404);
-        return { image_url: "", pdf_url: "", pdf_name: "" };
-      }
-    }
-
-    return { image_url: image_url, pdf_url: pdf_url, pdf_name: pdf_name }
-  } else {
-    sendErrorResponse(res, "file not found", 404);
-    return { image_url: "", pdf_url: "", pdf_name: "" };
-  }
-}
-
-export { Create, GetResearch, UpdateResearch, UploadImageToCloud, DeleteResearch, GetResearchByUserId, GetResearchDetailById, RatingStarsResearch }

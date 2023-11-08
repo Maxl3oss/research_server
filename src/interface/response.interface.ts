@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 
 interface Pagination {
     page: number,
@@ -7,11 +7,11 @@ interface Pagination {
     totalPage: number,
 }
 
-function sendErrorResponse(res: Response, message: string, statusCode = 500, taskStatus = false): any {
+function sendErrorResponse(res: Response, message: string, statusCode = 500, taskStatus = false) {
     return res.status(statusCode).json({ statusCode, taskStatus, message });
 }
 
-function sendSuccessResponse(res: Response, message: string, data: any, pagin?: Pagination, statusCode = 200, taskStatus = true): any {
+function sendSuccessResponse(res: Response, message: string, data: unknown, pagin?: Pagination, statusCode = 200, taskStatus = true) {
     return res.status(statusCode).json({ statusCode, taskStatus, message, data, pagin });
 }
 

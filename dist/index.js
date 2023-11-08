@@ -13,6 +13,7 @@ const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const user_routes_1 = __importDefault(require("./routes/user.routes"));
 const research_routes_1 = __importDefault(require("./routes/research.routes"));
 const tags_routes_1 = __importDefault(require("./routes/tags.routes"));
+const likes_routes_1 = __importDefault(require("./routes/likes.routes"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
 // Enable CORS
@@ -36,6 +37,7 @@ app.use("/api/auth", auth_routes_1.default);
 app.use("/api/user", user_routes_1.default);
 app.use("/api/research", research_routes_1.default);
 app.use("/api/tags", tags_routes_1.default);
+app.use("/api/likes", likes_routes_1.default);
 app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
 });
