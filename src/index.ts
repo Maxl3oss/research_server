@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.routes";
 import userRoutes from "./routes/user.routes";
 import researchRoutes from "./routes/research.routes";
 import tagsRoutes from "./routes/tags.routes";
+import likesRoutes from "./routes/likes.routes";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,6 +34,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/research", researchRoutes);
 app.use("/api/tags", tagsRoutes);
+app.use("/api/likes", likesRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);

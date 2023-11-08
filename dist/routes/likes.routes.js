@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const likeController = require("../controllers/like.controller");
+const likeController = require("../controllers/likes.controller");
 const router = express_1.default.Router();
 require("dotenv").config();
 router.post("/like-research/:userId", likeController.LikeResearch);

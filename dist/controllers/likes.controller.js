@@ -51,4 +51,4 @@ function LikeResearch(req, res) {
     });
 }
 exports.LikeResearch = LikeResearch;
-//# sourceMappingURL=like.controller.js.map
+//# sourceMappingURL=likes.controller.js.map
