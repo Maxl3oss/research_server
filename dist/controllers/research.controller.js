@@ -135,29 +135,68 @@ function GetResearchByUserId(req, res) {
         try {
             const page = Number(req.query.page) || 1;
             const pageSize = Number(req.query.pageSize) || 10;
-            const statusValues = [1, 2].includes(Number(req.query.status)) ? Number(req.query.status) : [1, 2];
+            const status = Number(req.query.status || 0);
+            const userId = req.params.userId || "";
+            // 1 == public 2 == no public 3 === all(public and no) 4 == list research is user like
+            const statusValues = [1, 2, 3].includes(status) ? (status === 3 ? [1, 2] : status) : (status === 4 ? 4 : 0);
             const skip = (page - 1) * pageSize;
-            const total = yield prisma.research.count({ where: { status: { in: statusValues }, user_id: req.params.userId || "" } });
-            const queryResearch = yield prisma.research.findMany({
-                skip,
-                take: pageSize,
-                where: {
-                    status: {
-                        in: statusValues,
-                    },
-                    user_id: req.params.userId || "",
-                },
-                select: {
-                    id: true,
-                    title: true,
-                    image_url: true,
-                    description: true,
-                }
-            });
             const countResearchUser = yield prisma.research.count({ where: { user_id: req.params.userId || "" } });
-            if (!queryResearch)
-                (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
-            (0, response_interface_1.sendSuccessResponse)(res, "success", { countResearch: countResearchUser, dataResearch: queryResearch }, (0, response_interface_1.createPagination)(page, pageSize, total), 200, true);
+            if (statusValues === 4) {
+                const total = yield prisma.likes.count({ where: { user_id: userId } });
+                const queryResearchByLikeId = yield prisma.likes.findMany({
+                    skip,
+                    take: pageSize,
+                    where: {
+                        user_id: userId,
+                        research_info: {
+                            user_id: {
+                                not: userId,
+                            }
+                        }
+                    },
+                    include: {
+                        research_info: {
+                            select: {
+                                id: true,
+                                title: true,
+                                image_url: true,
+                                description: true,
+                                user_info: {
+                                    select: {
+                                        id: true,
+                                    }
+                                }
+                            }
+                        },
+                    }
+                });
+                if (!queryResearchByLikeId)
+                    (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+                const filData = queryResearchByLikeId.map((curr) => curr.research_info);
+                (0, response_interface_1.sendSuccessResponse)(res, "success", { countResearch: countResearchUser, dataResearch: filData }, (0, response_interface_1.createPagination)(page, pageSize, total), 200, true);
+            }
+            else {
+                const total = yield prisma.research.count({ where: { status: { in: statusValues }, user_id: userId } });
+                const queryResearch = yield prisma.research.findMany({
+                    skip,
+                    take: pageSize,
+                    where: {
+                        status: {
+                            in: statusValues,
+                        },
+                        user_id: req.params.userId || "",
+                    },
+                    select: {
+                        id: true,
+                        title: true,
+                        image_url: true,
+                        description: true,
+                    }
+                });
+                if (!queryResearch)
+                    (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+                (0, response_interface_1.sendSuccessResponse)(res, "success", { countResearch: countResearchUser, dataResearch: queryResearch }, (0, response_interface_1.createPagination)(page, pageSize, total), 200, true);
+            }
         }
         catch (err) {
             console.error(err);

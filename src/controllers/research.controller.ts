@@ -109,32 +109,71 @@ export async function GetResearchByUserId(req: Request, res: Response) {
   try {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
-    const statusValues = [1, 2].includes(Number(req.query.status)) ? Number(req.query.status) : [1, 2];
+    const status = Number(req.query.status || 0);
+    const userId = req.params.userId || "";
+    // 1 == public 2 == no public 3 === all(public and no) 4 == list research is user like
+    const statusValues = [1, 2, 3].includes(status) ? (status === 3 ? [1, 2] : status) : (status === 4 ? 4 : 0);
 
     const skip = (page - 1) * pageSize;
-    const total = await prisma.research.count({ where: { status: { in: statusValues }, user_id: req.params.userId || "" } });
-
-    const queryResearch = await prisma.research.findMany({
-      skip,
-      take: pageSize,
-      where: {
-        status: {
-          in: statusValues,
-        },
-        user_id: req.params.userId || "",
-      },
-      select: {
-        id: true,
-        title: true,
-        image_url: true,
-        description: true,
-      }
-    });
     const countResearchUser = await prisma.research.count({ where: { user_id: req.params.userId || "" } });
 
-    if (!queryResearch) sendErrorResponse(res, "Research not found.", 404);
+    if (statusValues === 4) {
+      const total = await prisma.likes.count({ where: { user_id: userId } });
+      const queryResearchByLikeId = await prisma.likes.findMany({
+        skip,
+        take: pageSize,
+        where: {
+          user_id: userId,
+          research_info: {
+            user_id: {
+              not: userId,
+            }
+          }
+        },
+        include: {
+          research_info: {
+            select: {
+              id: true,
+              title: true,
+              image_url: true,
+              description: true,
+              user_info: {
+                select: {
+                  id: true,
+                }
+              }
+            }
+          },
+        }
+      });
 
-    sendSuccessResponse(res, "success", { countResearch: countResearchUser, dataResearch: queryResearch }, createPagination(page, pageSize, total), 200, true);
+      if (!queryResearchByLikeId) sendErrorResponse(res, "Research not found.", 404);
+      const filData = queryResearchByLikeId.map((curr) => curr.research_info);
+      sendSuccessResponse(res, "success", { countResearch: countResearchUser, dataResearch: filData }, createPagination(page, pageSize, total), 200, true);
+
+    } else {
+
+      const total = await prisma.research.count({ where: { status: { in: statusValues }, user_id: userId } });
+      const queryResearch = await prisma.research.findMany({
+        skip,
+        take: pageSize,
+        where: {
+          status: {
+            in: statusValues,
+          },
+          user_id: req.params.userId || "",
+        },
+        select: {
+          id: true,
+          title: true,
+          image_url: true,
+          description: true,
+        }
+      });
+
+      if (!queryResearch) sendErrorResponse(res, "Research not found.", 404);
+      sendSuccessResponse(res, "success", { countResearch: countResearchUser, dataResearch: queryResearch }, createPagination(page, pageSize, total), 200, true);
+    }
 
   } catch (err) {
     console.error(err);
@@ -187,7 +226,7 @@ export async function GetResearchDetailById(req: Request, res: Response) {
     });
     // calculator avg
     const researchWithAverageRating = queryResearch.map(({ Rating, Likes, ...researchItem }) => {
-      return { ...researchItem, rating_id: Rating[0]?.id || null, average_rating: Rating[0]?.rating || 0, like: Likes?.length > 0 , likes_count: query_like_count};
+      return { ...researchItem, rating_id: Rating[0]?.id || null, average_rating: Rating[0]?.rating || 0, like: Likes?.length > 0, likes_count: query_like_count };
     });
 
     if (queryResearch[0].user_id !== (req.params.userId || "")) {
