@@ -377,3 +377,76 @@ export async function RatingStarsResearch(req: Request, res: Response) {
     await prisma.$disconnect();
   }
 }
+
+// admin
+export async function GetResearchAll(req: Request, res: Response) {
+  try {
+    const page = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || 10;
+    const search = (req.query?.search ?? undefined) as string;
+    console.log(search)
+    const total = await prisma.research.count();
+    const skip = (page - 1) * pageSize;
+
+    const query = await prisma.research.findMany({
+      skip,
+      take: pageSize,
+      where: {
+        NOT: {
+          status: 0
+        },
+        ...(search && {
+          title: {
+            contains: search,
+          },
+        }),
+      },
+      select: {
+        id: true,
+        status: true,
+        title: true,
+        description: true,
+        user_info: {
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            email: true,
+          }
+        }
+      },
+    });
+
+    if (!query) sendErrorResponse(res, "Research not found.", 404);
+    sendSuccessResponse(res, "success", query, createPagination(page, pageSize, total));
+
+  } catch (err) {
+    console.error(err);
+    sendErrorResponse(res, "Internal server error.");
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function VerifyResearchById(req: Request, res: Response) {
+  try {
+    const { id = 0 } = req.params;
+    const statusPrev = await prisma.research.findFirst({ where: { id: Number(id) } });
+    const query = await prisma.research.update({
+      where: {
+        id: Number(id)
+      },
+      data: {
+        status: statusPrev?.status === 2 ? 1 : 2,
+      }
+    })
+
+    if (!query) sendErrorResponse(res, "Research not found.", 404);
+    sendSuccessResponse(res, "success", query, undefined);
+  } catch (err) {
+    console.error(err);
+    sendErrorResponse(res, "Internal server error.");
+  } finally {
+    await prisma.$disconnect();
+  }
+}
