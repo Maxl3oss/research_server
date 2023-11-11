@@ -62,9 +62,9 @@ function Login(req, res) {
                 if ((GetUser === null || GetUser === void 0 ? void 0 : GetUser.status) === 2)
                     return (0, response_interface_1.sendErrorResponse)(res, "Your email has not been verified.", 401);
                 const isPasswordMatch = bcrypt_1.default.compareSync(password, GetUser.password);
-                console.log(isPasswordMatch);
                 if (isPasswordMatch) {
-                    const { password } = GetUser, GetUserWithPassword = __rest(GetUser, ["password"]);
+                    const token = (0, jsonwebtoken_1.sign)({ id: GetUser.id, role: GetUser.role_id }, TOKEN_SECRET, { expiresIn: '7d' });
+                    const _a = Object.assign({ token }, GetUser), { password } = _a, GetUserWithPassword = __rest(_a, ["password"]);
                     return (0, response_interface_1.sendSuccessResponse)(res, "Login successful.", GetUserWithPassword);
                 }
             }
@@ -132,7 +132,7 @@ function verifyEmail(req, res) {
                     email: email,
                 },
                 data: {
-                    status: 1,
+                    status: 2,
                 }
             }) : false;
             if (!checkEmail || !updateStatus) {

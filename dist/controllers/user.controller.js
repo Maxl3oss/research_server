@@ -9,36 +9,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetProfile = void 0;
+exports.verifyUserById = exports.GetUserById = exports.DeleteUsersById = exports.GetUsersAll = void 0;
 const client_1 = require("@prisma/client");
 const response_interface_1 = require("../interface/response.interface");
 const prisma = new client_1.PrismaClient();
-function GetUser(req, res) {
+// admin
+function GetUsersAll(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const { page = 1, pageSize = 10 } = req.body;
-            const skip = (page - 1) * pageSize;
-            const GetUser = yield prisma.user.findMany({
-                skip,
-                take: pageSize,
-                where: {
-                    status: 1,
-                },
+            const query = yield prisma.user.findMany({
+                where: { status: { not: 0 } },
                 select: {
                     id: true,
+                    prefix: true,
                     first_name: true,
                     last_name: true,
-                    email: true,
-                },
+                    status: true,
+                }
             });
-            const total = yield prisma.user.count({
-                where: {
-                    status: 1,
-                },
-            });
-            if (!GetUser)
+            if (!query)
                 (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
-            (0, response_interface_1.sendSuccessResponse)(res, "success", GetUser, (0, response_interface_1.createPagination)(page, pageSize, total));
+            (0, response_interface_1.sendSuccessResponse)(res, "success", undefined);
         }
         catch (err) {
             console.error(err);
@@ -49,5 +40,63 @@ function GetUser(req, res) {
         }
     });
 }
-exports.GetProfile = GetUser;
+exports.GetUsersAll = GetUsersAll;
+function DeleteUsersById(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { id } = req.params;
+            const query = yield prisma.user.update({ where: { id: id }, data: { status: 0 } });
+            if (!query)
+                (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
+            (0, response_interface_1.sendSuccessResponse)(res, "success", undefined);
+        }
+        catch (err) {
+            console.error(err);
+            (0, response_interface_1.sendErrorResponse)(res, "Internal server error.");
+        }
+        finally {
+            yield prisma.$disconnect();
+        }
+    });
+}
+exports.DeleteUsersById = DeleteUsersById;
+function GetUserById(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { id } = req.params;
+            const query = yield prisma.user.findFirst({ where: { id: id } });
+            if (!query)
+                (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
+            (0, response_interface_1.sendSuccessResponse)(res, "success", undefined);
+        }
+        catch (err) {
+            console.error(err);
+            (0, response_interface_1.sendErrorResponse)(res, "Internal server error.");
+        }
+        finally {
+            yield prisma.$disconnect();
+        }
+    });
+}
+exports.GetUserById = GetUserById;
+function verifyUserById(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { id } = req.params;
+            const statusPrev = yield prisma.user.findFirst({ where: { id: id } });
+            const query = yield prisma.user.update({ where: { id: id }, data: { status: (statusPrev === null || statusPrev === void 0 ? void 0 : statusPrev.status) === 2 ? 1 : 2 } });
+            if (!query)
+                (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
+            (0, response_interface_1.sendSuccessResponse)(res, "success", undefined);
+        }
+        catch (err) {
+            console.error(err);
+            (0, response_interface_1.sendErrorResponse)(res, "Internal server error.");
+        }
+        finally {
+            yield prisma.$disconnect();
+        }
+    });
+}
+exports.verifyUserById = verifyUserById;
 //# sourceMappingURL=user.controller.js.map

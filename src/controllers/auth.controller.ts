@@ -43,9 +43,10 @@ async function Login(req: Request, res: Response) {
 
       const isPasswordMatch = bcrypt.compareSync(password, GetUser.password);
 
-        console.log(isPasswordMatch)
       if (isPasswordMatch) {
-        const { password, ...GetUserWithPassword } = GetUser;
+        const token = sign({ id: GetUser.id, role: GetUser.role_id }, TOKEN_SECRET, { expiresIn: '7d' });
+
+        const { password, ...GetUserWithPassword } = { token, ...GetUser };
         return sendSuccessResponse(res, "Login successful.", GetUserWithPassword);
       }
     }
@@ -110,7 +111,7 @@ async function verifyEmail(req: Request, res: Response) {
         email: email,
       },
       data: {
-        status: 1,
+        status: 2,
       }
     }) : false;
     if (!checkEmail || !updateStatus) {

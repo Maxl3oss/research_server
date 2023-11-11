@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RatingStarsResearch = exports.DeleteResearch = exports.UploadImageToCloud = exports.UpdateResearch = exports.GetResearchDetailById = exports.GetResearchByUserId = exports.GetResearch = exports.Create = void 0;
+exports.VerifyResearchById = exports.GetResearchAll = exports.RatingStarsResearch = exports.DeleteResearch = exports.UploadImageToCloud = exports.UpdateResearch = exports.GetResearchDetailById = exports.GetResearchByUserId = exports.GetResearch = exports.Create = void 0;
 const client_1 = require("@prisma/client");
 const response_interface_1 = require("../interface/response.interface");
 const helper_util_1 = require("../utils/helper.util");
@@ -416,4 +416,81 @@ function RatingStarsResearch(req, res) {
     });
 }
 exports.RatingStarsResearch = RatingStarsResearch;
+// admin
+function GetResearchAll(req, res) {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const page = Number(req.query.page) || 1;
+            const pageSize = Number(req.query.pageSize) || 10;
+            const search = ((_b = (_a = req.query) === null || _a === void 0 ? void 0 : _a.search) !== null && _b !== void 0 ? _b : undefined);
+            console.log(search);
+            const total = yield prisma.research.count();
+            const skip = (page - 1) * pageSize;
+            const query = yield prisma.research.findMany({
+                skip,
+                take: pageSize,
+                where: Object.assign({ NOT: {
+                        status: 0
+                    } }, (search && {
+                    title: {
+                        contains: search,
+                    },
+                })),
+                select: {
+                    id: true,
+                    status: true,
+                    title: true,
+                    description: true,
+                    user_info: {
+                        select: {
+                            id: true,
+                            first_name: true,
+                            last_name: true,
+                            email: true,
+                        }
+                    }
+                },
+            });
+            if (!query)
+                (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+            (0, response_interface_1.sendSuccessResponse)(res, "success", query, (0, response_interface_1.createPagination)(page, pageSize, total));
+        }
+        catch (err) {
+            console.error(err);
+            (0, response_interface_1.sendErrorResponse)(res, "Internal server error.");
+        }
+        finally {
+            yield prisma.$disconnect();
+        }
+    });
+}
+exports.GetResearchAll = GetResearchAll;
+function VerifyResearchById(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { id = 0 } = req.params;
+            const statusPrev = yield prisma.research.findFirst({ where: { id: Number(id) } });
+            const query = yield prisma.research.update({
+                where: {
+                    id: Number(id)
+                },
+                data: {
+                    status: (statusPrev === null || statusPrev === void 0 ? void 0 : statusPrev.status) === 2 ? 1 : 2,
+                }
+            });
+            if (!query)
+                (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+            (0, response_interface_1.sendSuccessResponse)(res, "success", query, undefined);
+        }
+        catch (err) {
+            console.error(err);
+            (0, response_interface_1.sendErrorResponse)(res, "Internal server error.");
+        }
+        finally {
+            yield prisma.$disconnect();
+        }
+    });
+}
+exports.VerifyResearchById = VerifyResearchById;
 //# sourceMappingURL=research.controller.js.map
