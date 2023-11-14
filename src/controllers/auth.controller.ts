@@ -51,7 +51,7 @@ async function Login(req: Request, res: Response) {
       }
     }
 
-    return sendErrorResponse(res, "Email or password invalid.", 200);
+    return sendErrorResponse(res, "Email or password invalid.", 401);
 
   } catch (err) {
     console.error(err);
