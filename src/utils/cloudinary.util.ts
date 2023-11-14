@@ -1,6 +1,8 @@
 const cloudinary = require("cloudinary").v2;
 require("dotenv").config();
 
+export type IFoldersName = "pdf" | "image" | "Profile";
+
 cloudinary.config({
   cloud_name: 'dopjszhwq',
   api_key: process.env.API_KEY,
@@ -8,45 +10,27 @@ cloudinary.config({
   secure: true
 });
 
-const optsImage = {
-  overwrite: true,
-  invalidate: true,
-  folder: "project_research/Images",
-  resource_type: "auto"
-}
-const optsPDF = {
-  overwrite: true,
-  invalidate: true,
-  folder: "project_research/PDF",
-  resource_type: "auto"
-}
-
-const uploadImage = (file_base64: any) => {
-  // const fileBuffer = Buffer.from(file_base64, 'base64');
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(file_base64, optsImage, (err: any, result: any) => {
-      if (result && result.secure_url) {
-        console.log("upload -> " + result.secure_url);
-        return resolve(result.secure_url);
-      }
-      // console.log(err.message);
-      return reject(err.message)
-    })
-  })
+const opts = (folders: IFoldersName) => {
+  return {
+    overwrite: true,
+    invalidate: true,
+    folder: `project_research/${folders}`,
+    resource_type: "auto"
+  }
 };
 
-const uploadPDF = (file_base64: any) => {
-  // const fileBuffer = Buffer.from(file_base64, 'base64');
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(file_base64, optsPDF, (err: any, result: any) => {
-      if (result && result.secure_url) {
-        console.log("upload -> " + result.secure_url);
-        return resolve(result.secure_url);
-      }
-      // console.log(err.message);
-      return reject(err.message)
-    })
-  })
+const uploadService = async (file_base64: unknown, folders: IFoldersName): Promise<string> => {
+  try {
+    const result = await cloudinary.uploader.upload(file_base64, opts(folders));
+    if (result && result.secure_url) {
+      console.log("upload -> " + result.secure_url);
+      return result.secure_url;
+    }
+    throw new Error("No secure URL found in the result");
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 };
 
 exports.delete = (url: any) => {
@@ -61,6 +45,19 @@ exports.delete = (url: any) => {
   })
 }
 
-const cloud = { uploadImage, uploadPDF };
+
+// const uploadService = (file_base64: unknown, folders: IFoldersName) => {
+//   return new Promise((resolve, reject) => {
+//     cloudinary.uploader.upload(file_base64, opts(folders), (err: any, result: any) => {
+//       if (result && result.secure_url) {
+//         console.log("upload -> " + result?.secure_url);
+//         return resolve(result?.secure_url);
+//       }
+//       return reject(err.message)
+//     })
+//   })
+// };
+
+const cloud = { uploadService };
 
 export default cloud;
