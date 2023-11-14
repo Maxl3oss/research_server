@@ -32,7 +32,9 @@ const router = express_1.default.Router();
 const multer_util_1 = __importDefault(require("../utils/multer.util"));
 const authMiddleware_1 = require("../middleware/authMiddleware");
 router.post("/create", multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.Create);
-router.post("/upload", multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UploadImageToCloud);
+// router.post("/upload",
+//   iMulter.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]),
+//   researchController.UploadImageToCloud);
 router.put("/update/:id", multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UpdateResearch);
 router.get("/get-all", researchController.GetResearch);
 router.get("/get-detail/:userId", researchController.GetResearchDetailById);

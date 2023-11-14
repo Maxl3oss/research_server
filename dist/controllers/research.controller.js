@@ -19,15 +19,11 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VerifyResearchById = exports.GetResearchAll = exports.RatingStarsResearch = exports.DeleteResearch = exports.UploadImageToCloud = exports.UpdateResearch = exports.GetResearchDetailById = exports.GetResearchByUserId = exports.GetResearch = exports.Create = void 0;
+exports.VerifyResearchById = exports.GetResearchAll = exports.RatingStarsResearch = exports.DeleteResearch = exports.UpdateResearch = exports.GetResearchDetailById = exports.GetResearchByUserId = exports.GetResearch = exports.Create = void 0;
 const client_1 = require("@prisma/client");
 const response_interface_1 = require("../interface/response.interface");
 const helper_util_1 = require("../utils/helper.util");
-const cloudinary_util_1 = __importDefault(require("../utils/cloudinary.util"));
 const prisma = new client_1.PrismaClient();
 function Create(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -281,10 +277,11 @@ function GetResearchDetailById(req, res) {
 }
 exports.GetResearchDetailById = GetResearchDetailById;
 function UpdateResearch(req, res) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             // variable
-            const data = req.body ? req.body : {};
+            const data = (_a = req.body) !== null && _a !== void 0 ? _a : {};
             // upload file
             const { image_url, pdf_url, pdf_name } = yield (0, helper_util_1.uploadFilesHelper)(req.files, res);
             // update data
@@ -323,30 +320,26 @@ function UpdateResearch(req, res) {
     });
 }
 exports.UpdateResearch = UpdateResearch;
-function UploadImageToCloud(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            let image = "", pdf = "";
-            const files = req.files;
-            // if (typeof file === "object" && file !== null && 'image' in file) {
-            if (typeof files === "object" && files !== null && "image" in files) {
-                yield cloudinary_util_1.default.uploadImage(files.image[0]["path"]).then((url) => image = url);
-            }
-            if (typeof files === "object" && "pdf" in files) {
-                yield cloudinary_util_1.default.uploadPDF(files.pdf[0]["path"]).then((url) => pdf = url);
-            }
-            res.json({ mes: "ยังไง", image, pdf });
-            // const result = await cloud..uploader.upload(file.path);
-            // Handle the Cloudinary response (e.g., store the URL in a database)
-            // res.json(result);
-        }
-        catch (err) {
-            console.error(err);
-            (0, response_interface_1.sendErrorResponse)(res, "Internal server error.");
-        }
-    });
-}
-exports.UploadImageToCloud = UploadImageToCloud;
+// export async function UploadImageToCloud(req: Request, res: Response) {
+//   try {
+//     let image = "", pdf = "";
+//     const files = req.files;
+//     // if (typeof file === "object" && file !== null && 'image' in file) {
+//     if (typeof files === "object" && files !== null && "image" in files) {
+//       await cloud.uploadImage(files.image[0]["path"]).then((url: any) => image = url);
+//     }
+//     if (typeof files === "object" && "pdf" in files) {
+//       await cloud.uploadPDF(files.pdf[0]["path"]).then((url: any) => pdf = url);
+//     }
+//     res.json({ mes: "ยังไง", image, pdf });
+//     // const result = await cloud..uploader.upload(file.path);
+//     // Handle the Cloudinary response (e.g., store the URL in a database)
+//     // res.json(result);
+//   } catch (err) {
+//     console.error(err);
+//     sendErrorResponse(res, "Internal server error.");
+//   }
+// }
 function DeleteResearch(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

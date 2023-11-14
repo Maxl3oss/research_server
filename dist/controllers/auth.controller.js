@@ -68,7 +68,7 @@ function Login(req, res) {
                     return (0, response_interface_1.sendSuccessResponse)(res, "Login successful.", GetUserWithPassword);
                 }
             }
-            return (0, response_interface_1.sendErrorResponse)(res, "Email or password invalid.", 200);
+            return (0, response_interface_1.sendErrorResponse)(res, "Email or password invalid.", 401);
         }
         catch (err) {
             console.error(err);

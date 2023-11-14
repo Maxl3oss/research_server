@@ -255,7 +255,7 @@ export async function GetResearchDetailById(req: Request, res: Response) {
 export async function UpdateResearch(req: Request, res: Response) {
   try {
     // variable
-    const data: Research = req.body ? req.body : {};
+    const data: Research = req.body ?? {};
     // upload file
     const { image_url, pdf_url, pdf_name } = await uploadFilesHelper(req.files, res);
     // update data
@@ -293,26 +293,26 @@ export async function UpdateResearch(req: Request, res: Response) {
   }
 }
 
-export async function UploadImageToCloud(req: Request, res: Response) {
-  try {
-    let image = "", pdf = "";
-    const files = req.files;
-    // if (typeof file === "object" && file !== null && 'image' in file) {
-    if (typeof files === "object" && files !== null && "image" in files) {
-      await cloud.uploadImage(files.image[0]["path"]).then((url: any) => image = url);
-    }
-    if (typeof files === "object" && "pdf" in files) {
-      await cloud.uploadPDF(files.pdf[0]["path"]).then((url: any) => pdf = url);
-    }
-    res.json({ mes: "ยังไง", image, pdf });
-    // const result = await cloud..uploader.upload(file.path);
-    // Handle the Cloudinary response (e.g., store the URL in a database)
-    // res.json(result);
-  } catch (err) {
-    console.error(err);
-    sendErrorResponse(res, "Internal server error.");
-  }
-}
+// export async function UploadImageToCloud(req: Request, res: Response) {
+//   try {
+//     let image = "", pdf = "";
+//     const files = req.files;
+//     // if (typeof file === "object" && file !== null && 'image' in file) {
+//     if (typeof files === "object" && files !== null && "image" in files) {
+//       await cloud.uploadImage(files.image[0]["path"]).then((url: any) => image = url);
+//     }
+//     if (typeof files === "object" && "pdf" in files) {
+//       await cloud.uploadPDF(files.pdf[0]["path"]).then((url: any) => pdf = url);
+//     }
+//     res.json({ mes: "ยังไง", image, pdf });
+//     // const result = await cloud..uploader.upload(file.path);
+//     // Handle the Cloudinary response (e.g., store the URL in a database)
+//     // res.json(result);
+//   } catch (err) {
+//     console.error(err);
+//     sendErrorResponse(res, "Internal server error.");
+//   }
+// }
 
 export async function DeleteResearch(req: Request, res: Response) {
   try {
