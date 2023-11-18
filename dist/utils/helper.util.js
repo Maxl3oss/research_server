@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uploadFilesHelper = void 0;
-const response_interface_1 = require("../interface/response.interface");
 const cloudinary_util_1 = __importDefault(require("./cloudinary.util"));
 // export async function uploadFilesHelper2(files: any, res: Response) {
 //   let image_url: string = "";
@@ -64,7 +63,7 @@ function uploadFilesHelper(files, res) {
                             profile_url = url;
                     }
                     catch (err) {
-                        (0, response_interface_1.sendErrorResponse)(res, err.toString(), 404);
+                        // sendErrorResponse(res, (err as string).toString(), 404);
                         return { image_url: "", pdf_url: "", pdf_name: "", profile_url: "" };
                     }
                 }
@@ -72,7 +71,7 @@ function uploadFilesHelper(files, res) {
             return { image_url: image_url, pdf_url: pdf_url, pdf_name: pdf_name, profile_url: profile_url };
         }
         else {
-            (0, response_interface_1.sendErrorResponse)(res, "file not found", 404);
+            // sendErrorResponse(res, "file not found", 404);
             return { image_url: "", pdf_url: "", pdf_name: "", profile_url: "" };
         }
     });

@@ -10,7 +10,7 @@ router.put("/change-profile/:id",
   authenticateJWT, userController.ChangeProfile);
 
 router.get("/get-profile/:id", authenticateJWT, userController.GetProfile);
-
+router.put("/update/:id", authenticateJWT, userController.Update);
 // admin
 router.get("/managements/get-all", authenticateJWT, authorizeAdmin, userController.GetUsersAll);
 router.get("/managements/get/:id", authenticateJWT, authorizeAdmin, userController.GetUserById);

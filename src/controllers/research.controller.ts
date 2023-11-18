@@ -384,8 +384,16 @@ export async function GetResearchAll(req: Request, res: Response) {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
     const search = (req.query?.search ?? undefined) as string;
-    console.log(search)
-    const total = await prisma.research.count();
+    // console.log(search)
+    const total = await prisma.research.count({
+      where: {
+        ...(search && {
+          title: {
+            contains: search,
+          },
+        }),
+      }
+    });
     const skip = (page - 1) * pageSize;
 
     const query = await prisma.research.findMany({

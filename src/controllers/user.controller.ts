@@ -34,7 +34,6 @@ export async function GetProfile(req: Request, res: Response) {
       select: {
         id: true,
         email: true,
-        password: true,
         profile: true,
         first_name: true,
         last_name: true,
@@ -57,20 +56,48 @@ export async function GetProfile(req: Request, res: Response) {
 
 // admin
 export async function GetUsersAll(req: Request, res: Response) {
+  const page = Number(req.query.page) || 1;
+  const pageSize = Number(req.query.pageSize) || 10;
+  const search = (req.query?.search ?? undefined) as string;
+  const total = await prisma.user.count({
+    where: {
+      ...(search && {
+        first_name: {
+          contains: search,
+        },
+        last_name: search,
+      }),
+    }
+  });
+  const skip = (page - 1) * pageSize;
+
   try {
     const query = await prisma.user.findMany({
-      where: { status: { not: 0 } },
+      skip,
+      take: pageSize,
+      where: {
+        status: {
+          not: 0
+        },
+        ...(search && {
+          first_name: {
+            contains: search,
+          },
+        }),
+      },
       select: {
         id: true,
+        profile: true,
         prefix: true,
         first_name: true,
         last_name: true,
+        email: true,
         status: true,
       }
     });
 
     if (!query) sendErrorResponse(res, "User not found.", 404);
-    sendSuccessResponse(res, "success", undefined);
+    sendSuccessResponse(res, "success", query, createPagination(page, pageSize, total));
 
   } catch (err) {
     console.error(err);
@@ -134,7 +161,6 @@ export async function Update(req: Request, res: Response) {
     const { id } = req.params;
     const data: User = req.body;
     const { profile_url } = await uploadFilesHelper(req.files, res);
-    const hashPass = await bcrypt.hash(data.password, 9);
 
     const query = await prisma.user.update({
       where: {
@@ -145,7 +171,7 @@ export async function Update(req: Request, res: Response) {
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email,
-        ...(hashPass && { password: hashPass }),
+        ...(data.password && { password: await bcrypt.hash(data.password, 9) }),
         ...((profile_url && profile_url !== "") && { profile: profile_url }),
       }
     });

@@ -417,8 +417,14 @@ function GetResearchAll(req, res) {
             const page = Number(req.query.page) || 1;
             const pageSize = Number(req.query.pageSize) || 10;
             const search = ((_b = (_a = req.query) === null || _a === void 0 ? void 0 : _a.search) !== null && _b !== void 0 ? _b : undefined);
-            console.log(search);
-            const total = yield prisma.research.count();
+            // console.log(search)
+            const total = yield prisma.research.count({
+                where: Object.assign({}, (search && {
+                    title: {
+                        contains: search,
+                    },
+                }))
+            });
             const skip = (page - 1) * pageSize;
             const query = yield prisma.research.findMany({
                 skip,

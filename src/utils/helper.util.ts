@@ -51,14 +51,14 @@ export async function uploadFilesHelper(files: any, res: Response) {
           if (type === 'image') image_url = url as string;
           if (type === 'profile') profile_url = url as string;
         } catch (err) {
-          sendErrorResponse(res, (err as string).toString(), 404);
+          // sendErrorResponse(res, (err as string).toString(), 404);
           return { image_url: "", pdf_url: "", pdf_name: "", profile_url: "" };
         }
       }
     }
     return { image_url: image_url, pdf_url: pdf_url, pdf_name: pdf_name, profile_url: profile_url }
   } else {
-    sendErrorResponse(res, "file not found", 404);
+    // sendErrorResponse(res, "file not found", 404);
     return { image_url: "", pdf_url: "", pdf_name: "", profile_url: "" };
   }
 }
