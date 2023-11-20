@@ -20,7 +20,7 @@ function GetTags(req, res) {
                 select: { id: true, name: true }
             });
             if (!GetTagsPrisma)
-                (0, response_interface_1.sendErrorResponse)(res, "Tags not found.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "Tags not found.", 404);
             (0, response_interface_1.sendSuccessResponse)(res, "success", GetTagsPrisma);
         }
         catch (err) {

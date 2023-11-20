@@ -95,7 +95,7 @@ function GetResearch(req, res) {
                 },
             });
             if (!queryResearch)
-                (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
             // calculator avg
             const researchWithAverageRating = queryResearch.map((_a) => {
                 var { Rating } = _a, researchItem = __rest(_a, ["Rating"]);
@@ -190,7 +190,7 @@ function GetResearchByUserId(req, res) {
                     }
                 });
                 if (!queryResearch)
-                    (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+                    return (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
                 (0, response_interface_1.sendSuccessResponse)(res, "success", { countResearch: countResearchUser, dataResearch: queryResearch }, (0, response_interface_1.createPagination)(page, pageSize, total), 200, true);
             }
         }
@@ -240,7 +240,7 @@ function GetResearchDetailById(req, res) {
                 }
             });
             if (!queryResearch)
-                (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
             const query_like_count = yield prisma.likes.count({
                 where: {
                     research_id: queryResearch[0].id,
@@ -307,7 +307,7 @@ function UpdateResearch(req, res) {
                 },
             });
             if (!queryResearch)
-                (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
             (0, response_interface_1.sendSuccessResponse)(res, "Updated research successful.", undefined);
         }
         catch (err) {
@@ -353,7 +353,7 @@ function DeleteResearch(req, res) {
                 },
             });
             if (!queryResearch)
-                (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
             (0, response_interface_1.sendSuccessResponse)(res, "Delete research successful.", undefined);
         }
         catch (err) {
@@ -395,7 +395,7 @@ function RatingStarsResearch(req, res) {
                     }
                 });
                 if (!queryRating)
-                    (0, response_interface_1.sendErrorResponse)(res, "Rating not found.", 404);
+                    return (0, response_interface_1.sendErrorResponse)(res, "Rating not found.", 404);
             }
             (0, response_interface_1.sendSuccessResponse)(res, "Updated research successful.", undefined);
         }
@@ -452,7 +452,7 @@ function GetResearchAll(req, res) {
                 },
             });
             if (!query)
-                (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
             (0, response_interface_1.sendSuccessResponse)(res, "success", query, (0, response_interface_1.createPagination)(page, pageSize, total));
         }
         catch (err) {
@@ -479,7 +479,7 @@ function VerifyResearchById(req, res) {
                 }
             });
             if (!query)
-                (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
             (0, response_interface_1.sendSuccessResponse)(res, "success", query, undefined);
         }
         catch (err) {

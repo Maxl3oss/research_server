@@ -10,7 +10,7 @@ async function GetTags(req: Request, res: Response) {
       select: { id: true, name: true }
     });
 
-    if (!GetTagsPrisma) sendErrorResponse(res, "Tags not found.", 404);
+    if (!GetTagsPrisma) return sendErrorResponse(res, "Tags not found.", 404);
 
     sendSuccessResponse(res, "success", GetTagsPrisma);
 

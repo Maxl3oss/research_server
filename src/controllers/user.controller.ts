@@ -15,7 +15,7 @@ export async function ChangeProfile(req: Request, res: Response) {
       data: { ...((profile_url && profile_url !== "") && { profile: profile_url }) }
     });
 
-    if (!query) sendErrorResponse(res, "Change profile fail.", 404);
+    if (!query) return sendErrorResponse(res, "Change profile fail.", 404);
     sendSuccessResponse(res, "success", undefined);
 
   } catch (err) {
@@ -43,7 +43,7 @@ export async function GetProfile(req: Request, res: Response) {
       },
     });
 
-    if (!query) sendErrorResponse(res, "No user profile.", 404);
+    if (!query) return sendErrorResponse(res, "No user profile.", 404);
     sendSuccessResponse(res, "success", query);
 
   } catch (err) {
@@ -96,7 +96,7 @@ export async function GetUsersAll(req: Request, res: Response) {
       }
     });
 
-    if (!query) sendErrorResponse(res, "User not found.", 404);
+    if (!query) return sendErrorResponse(res, "User not found.", 404);
     sendSuccessResponse(res, "success", query, createPagination(page, pageSize, total));
 
   } catch (err) {
@@ -112,7 +112,7 @@ export async function DeleteUsersById(req: Request, res: Response) {
     const { id } = req.params;
     const query = await prisma.user.update({ where: { id: id }, data: { status: 0 } });
 
-    if (!query) sendErrorResponse(res, "User not found.", 404);
+    if (!query) return sendErrorResponse(res, "User not found.", 404);
     sendSuccessResponse(res, "success", undefined);
 
   } catch (err) {
@@ -125,11 +125,11 @@ export async function DeleteUsersById(req: Request, res: Response) {
 
 export async function GetUserById(req: Request, res: Response) {
   try {
-    const { id } = req.params;
+    const { id } = req?.params;
     const query = await prisma.user.findFirst({ where: { id: id } });
 
-    if (!query) sendErrorResponse(res, "User not found.", 404);
-    sendSuccessResponse(res, "success", undefined);
+    if (!query) return sendErrorResponse(res, "User not found.", 404);
+    sendSuccessResponse(res, "success", query);
 
   } catch (err) {
     console.error(err);
@@ -145,7 +145,7 @@ export async function verifyUserById(req: Request, res: Response) {
     const statusPrev = await prisma.user.findFirst({ where: { id: id } });
     const query = await prisma.user.update({ where: { id: id }, data: { status: statusPrev?.status === 2 ? 1 : 2 } });
 
-    if (!query) sendErrorResponse(res, "User not found.", 404);
+    if (!query) return sendErrorResponse(res, "User not found.", 404);
     sendSuccessResponse(res, "success", undefined);
 
   } catch (err) {
@@ -176,7 +176,7 @@ export async function Update(req: Request, res: Response) {
       }
     });
 
-    if (!query) sendErrorResponse(res, "Update user fail.", 404);
+    if (!query) return sendErrorResponse(res, "Update user fail.", 404);
     sendSuccessResponse(res, "success", undefined);
 
   } catch (err) {

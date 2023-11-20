@@ -28,7 +28,7 @@ function ChangeProfile(req, res) {
                 data: Object.assign({}, ((profile_url && profile_url !== "") && { profile: profile_url }))
             });
             if (!query)
-                (0, response_interface_1.sendErrorResponse)(res, "Change profile fail.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "Change profile fail.", 404);
             (0, response_interface_1.sendSuccessResponse)(res, "success", undefined);
         }
         catch (err) {
@@ -59,7 +59,7 @@ function GetProfile(req, res) {
                 },
             });
             if (!query)
-                (0, response_interface_1.sendErrorResponse)(res, "No user profile.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "No user profile.", 404);
             (0, response_interface_1.sendSuccessResponse)(res, "success", query);
         }
         catch (err) {
@@ -110,7 +110,7 @@ function GetUsersAll(req, res) {
                 }
             });
             if (!query)
-                (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
             (0, response_interface_1.sendSuccessResponse)(res, "success", query, (0, response_interface_1.createPagination)(page, pageSize, total));
         }
         catch (err) {
@@ -129,7 +129,7 @@ function DeleteUsersById(req, res) {
             const { id } = req.params;
             const query = yield prisma.user.update({ where: { id: id }, data: { status: 0 } });
             if (!query)
-                (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
             (0, response_interface_1.sendSuccessResponse)(res, "success", undefined);
         }
         catch (err) {
@@ -145,11 +145,11 @@ exports.DeleteUsersById = DeleteUsersById;
 function GetUserById(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const { id } = req.params;
+            const { id } = req === null || req === void 0 ? void 0 : req.params;
             const query = yield prisma.user.findFirst({ where: { id: id } });
             if (!query)
-                (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
-            (0, response_interface_1.sendSuccessResponse)(res, "success", undefined);
+                return (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
+            (0, response_interface_1.sendSuccessResponse)(res, "success", query);
         }
         catch (err) {
             console.error(err);
@@ -168,7 +168,7 @@ function verifyUserById(req, res) {
             const statusPrev = yield prisma.user.findFirst({ where: { id: id } });
             const query = yield prisma.user.update({ where: { id: id }, data: { status: (statusPrev === null || statusPrev === void 0 ? void 0 : statusPrev.status) === 2 ? 1 : 2 } });
             if (!query)
-                (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "User not found.", 404);
             (0, response_interface_1.sendSuccessResponse)(res, "success", undefined);
         }
         catch (err) {
@@ -194,7 +194,7 @@ function Update(req, res) {
                 data: Object.assign(Object.assign({ prefix: data.prefix, first_name: data.first_name, last_name: data.last_name, email: data.email }, (data.password && { password: yield bcrypt_1.default.hash(data.password, 9) })), ((profile_url && profile_url !== "") && { profile: profile_url }))
             });
             if (!query)
-                (0, response_interface_1.sendErrorResponse)(res, "Update user fail.", 404);
+                return (0, response_interface_1.sendErrorResponse)(res, "Update user fail.", 404);
             (0, response_interface_1.sendSuccessResponse)(res, "success", undefined);
         }
         catch (err) {
