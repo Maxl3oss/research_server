@@ -47,6 +47,7 @@ export async function GetResearch(req: Request, res: Response) {
   try {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
+    const orderBy = req.query?.orderBy ?? "asc";
 
     const skip = (page - 1) * pageSize;
     const total = await prisma.research.count({ where: { status: 1, } });
@@ -73,6 +74,11 @@ export async function GetResearch(req: Request, res: Response) {
           },
         },
       },
+      orderBy: {
+        ...(orderBy === "desc" && {
+          views: "desc",
+        }),
+      }
     });
 
     if (!queryResearch) return sendErrorResponse(res, "Research not found.", 404);
