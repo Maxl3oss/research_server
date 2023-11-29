@@ -65,10 +65,12 @@ function Create(req, res) {
 }
 exports.Create = Create;
 function GetResearch(req, res) {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const page = Number(req.query.page) || 1;
             const pageSize = Number(req.query.pageSize) || 10;
+            const orderBy = (_b = (_a = req.query) === null || _a === void 0 ? void 0 : _a.orderBy) !== null && _b !== void 0 ? _b : "asc";
             const skip = (page - 1) * pageSize;
             const total = yield prisma.research.count({ where: { status: 1, } });
             const queryResearch = yield prisma.research.findMany({
@@ -93,6 +95,9 @@ function GetResearch(req, res) {
                         },
                     },
                 },
+                orderBy: Object.assign({}, (orderBy === "desc" && {
+                    views: "desc",
+                }))
             });
             if (!queryResearch)
                 return (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);

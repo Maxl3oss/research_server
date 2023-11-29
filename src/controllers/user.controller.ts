@@ -129,7 +129,8 @@ export async function GetUserById(req: Request, res: Response) {
     const query = await prisma.user.findFirst({ where: { id: id } });
 
     if (!query) return sendErrorResponse(res, "User not found.", 404);
-    sendSuccessResponse(res, "success", query);
+    const { password, ...dataWithOutPassword } = query;
+    sendSuccessResponse(res, "success", dataWithOutPassword);
 
   } catch (err) {
     console.error(err);
