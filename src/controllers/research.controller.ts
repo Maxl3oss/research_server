@@ -4,6 +4,12 @@ import { sendErrorResponse, sendSuccessResponse, createPagination } from "../int
 import { uploadFilesHelper } from "../utils/helper.util";
 import cloud from "../utils/cloudinary.util";
 const prisma = new PrismaClient();
+interface RequestQuery {
+  orderBy?: string;
+  search?: string;
+  filter?: string;
+  [key: string]: any;
+}
 
 export async function Create(req: Request, res: Response) {
   try {
@@ -45,22 +51,43 @@ export async function Create(req: Request, res: Response) {
 
 export async function GetResearch(req: Request, res: Response) {
   try {
-    const page = Number(req.query.page) || 1;
-    const pageSize = Number(req.query.pageSize) || 10;
-    const orderBy = req.query?.orderBy ?? "asc";
+    const { orderBy = "asc", search = "", filter = "", ...raw }: RequestQuery = req.query;
+    const page = Number(raw.page) || 1;
+    const pageSize = Number(raw.pageSize) || 10;
 
     const skip = (page - 1) * pageSize;
     const total = await prisma.research.count({ where: { status: 1, } });
+
+    const arrFilter = filter?.length > 0 ? filter?.split(",").map(Number) : [];
+
+    const dynamicFilters: { [key: number]: any } = {
+      1: { OR: [{ title: { contains: search } }, { title_alternative: { contains: search } }] },
+      2: {
+        user_info: {
+          OR: [
+            { first_name: { contains: search } }, { last_name: { contains: search } },
+            { AND: [{ first_name: { contains: search } }, { last_name: { contains: search } }] }
+          ]
+        }
+      },
+      3: { subject: { contains: search } },
+      4: { description: { contains: search } },
+      5: { creator: { contains: search } }
+    };
+    const filtersToApply = arrFilter.map(filter => dynamicFilters[filter]).filter(Boolean);
+    const combinedFilters = filtersToApply.length > 0 ? { OR: filtersToApply } : { OR: [{ title: { contains: search } }, { title_alternative: { contains: search } }] };
 
     const queryResearch = await prisma.research.findMany({
       skip,
       take: pageSize,
       where: {
         status: 1,
+        ...combinedFilters,
       },
       include: {
         user_info: {
           select: {
+            profile: true,
             prefix: true,
             first_name: true,
             last_name: true,
@@ -97,7 +124,7 @@ export async function GetResearch(req: Request, res: Response) {
         tags_info: researchItem.tags_info,
         likes: researchItem._count.Likes,
         views: researchItem.views,
-        average_rating: averageRating
+        average_rating: averageRating.toFixed(0)
       };
     });
 

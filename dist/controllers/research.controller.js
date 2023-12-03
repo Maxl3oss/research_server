@@ -65,23 +65,38 @@ function Create(req, res) {
 }
 exports.Create = Create;
 function GetResearch(req, res) {
-    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const page = Number(req.query.page) || 1;
-            const pageSize = Number(req.query.pageSize) || 10;
-            const orderBy = (_b = (_a = req.query) === null || _a === void 0 ? void 0 : _a.orderBy) !== null && _b !== void 0 ? _b : "asc";
+            const _a = req.query, { orderBy = "asc", search = "", filter = "" } = _a, raw = __rest(_a, ["orderBy", "search", "filter"]);
+            const page = Number(raw.page) || 1;
+            const pageSize = Number(raw.pageSize) || 10;
             const skip = (page - 1) * pageSize;
             const total = yield prisma.research.count({ where: { status: 1, } });
+            const arrFilter = (filter === null || filter === void 0 ? void 0 : filter.length) > 0 ? filter === null || filter === void 0 ? void 0 : filter.split(",").map(Number) : [];
+            const dynamicFilters = {
+                1: { OR: [{ title: { contains: search } }, { title_alternative: { contains: search } }] },
+                2: {
+                    user_info: {
+                        OR: [
+                            { first_name: { contains: search } }, { last_name: { contains: search } },
+                            { AND: [{ first_name: { contains: search } }, { last_name: { contains: search } }] }
+                        ]
+                    }
+                },
+                3: { subject: { contains: search } },
+                4: { description: { contains: search } },
+                5: { creator: { contains: search } }
+            };
+            const filtersToApply = arrFilter.map(filter => dynamicFilters[filter]).filter(Boolean);
+            const combinedFilters = filtersToApply.length > 0 ? { OR: filtersToApply } : { OR: [{ title: { contains: search } }, { title_alternative: { contains: search } }] };
             const queryResearch = yield prisma.research.findMany({
                 skip,
                 take: pageSize,
-                where: {
-                    status: 1,
-                },
+                where: Object.assign({ status: 1 }, combinedFilters),
                 include: {
                     user_info: {
                         select: {
+                            profile: true,
                             prefix: true,
                             first_name: true,
                             last_name: true,
@@ -116,7 +131,7 @@ function GetResearch(req, res) {
                     tags_info: researchItem.tags_info,
                     likes: researchItem._count.Likes,
                     views: researchItem.views,
-                    average_rating: averageRating
+                    average_rating: averageRating.toFixed(0)
                 };
             });
             (0, response_interface_1.sendSuccessResponse)(res, "success", researchWithAverageRating, (0, response_interface_1.createPagination)(page, pageSize, total));
