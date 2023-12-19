@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 export async function ChangeProfile(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { profile_url } = await uploadFilesHelper(req.files, res);
+    const { profile_url } = await uploadFilesHelper(req.files);
     const query = await prisma.user.update({
       where: { id: id },
       data: { ...((profile_url && profile_url !== "") && { profile: profile_url }) }
@@ -161,7 +161,7 @@ export async function Update(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const data: User = req.body;
-    const { profile_url } = await uploadFilesHelper(req.files, res);
+    const { profile_url } = await uploadFilesHelper(req.files);
 
     const query = await prisma.user.update({
       where: {
