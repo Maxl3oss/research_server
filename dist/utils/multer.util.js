@@ -20,8 +20,8 @@ const fileFilter = (request, file, callback) => {
 const uploads = (0, multer_1.default)({
     // storage: storage,
     fileFilter: fileFilter,
-    // storage: multer.diskStorage({}),
-    storage: multer_1.default.memoryStorage(),
+    storage: multer_1.default.diskStorage({}),
+    // storage: multer.memoryStorage(),
     limits: {
         fieldSize: 10 * 1024 * 1024,
         fileSize: 50000000, // Around 10MB
