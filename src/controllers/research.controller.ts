@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient, Research } from '@prisma/client';
 import { sendErrorResponse, sendSuccessResponse, createPagination } from "../interface/response.interface";
-import { uploadFilesHelper } from "../utils/helper.util";
-import cloud from "../utils/cloudinary.util";
+import { extractFilePDF, uploadFilesHelper } from "../utils/helper.util";
 const prisma = new PrismaClient();
 interface RequestQuery {
   orderBy?: string;
@@ -16,7 +15,7 @@ export async function Create(req: Request, res: Response) {
     // variable
     const data: Research = req.body ? req.body : {};
     // upload file
-    const { image_url, pdf_url, pdf_name } = await uploadFilesHelper(req.files, res);
+    const { image_url, pdf_url } = await uploadFilesHelper(req.files);
 
     // create data
     await prisma.research.create({
@@ -32,7 +31,7 @@ export async function Create(req: Request, res: Response) {
         rights: data.rights,
         year_creation: new Date(data.year_creation) || new Date(),
         file_url: pdf_url,
-        file_name: pdf_name,
+        file_name: data.file_name,
         image_url: image_url,
         tags_id: Number(data.tags_id || undefined),
         user_id: data.user_id,
@@ -290,7 +289,7 @@ export async function UpdateResearch(req: Request, res: Response) {
     // variable
     const data: Research = req.body ?? {};
     // upload file
-    const { image_url, pdf_url, pdf_name } = await uploadFilesHelper(req.files, res);
+    const { image_url, pdf_url } = await uploadFilesHelper(req.files);
     // update data
     const queryResearch = await prisma.research.update({
       where: {
@@ -308,7 +307,7 @@ export async function UpdateResearch(req: Request, res: Response) {
         rights: data.rights,
         year_creation: data.year_creation,
         tags_id: Number(data.tags_id || undefined),
-        file_name: pdf_name,
+        file_name: data.file_name,
         file_url: pdf_url || undefined,
         image_url: image_url || undefined,
       },
@@ -491,3 +490,23 @@ export async function VerifyResearchById(req: Request, res: Response) {
     await prisma.$disconnect();
   }
 }
+
+export async function UploadExtractFile(req: Request, res: Response) {
+  try {
+
+    const exData = await extractFilePDF(req.files);
+    const data = {
+      exData,
+    }
+    if (!data) return sendErrorResponse(res, "NotFound", 404);
+
+    sendSuccessResponse(res, "สำเร็จ.", data);
+
+  } catch (err) {
+    console.error(err);
+    sendErrorResponse(res, "Internal server error.");
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+

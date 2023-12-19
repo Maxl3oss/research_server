@@ -8,9 +8,9 @@ router.post("/create",
   iMulter.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]),
   researchController.Create);
 
-// router.post("/upload",
-//   iMulter.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]),
-//   researchController.UploadImageToCloud);
+router.post("/extract",
+  iMulter.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]),
+  researchController.UploadExtractFile);
 
 router.put("/update/:id",
   iMulter.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]),
