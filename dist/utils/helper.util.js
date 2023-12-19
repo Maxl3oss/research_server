@@ -16,7 +16,7 @@ exports.extractFilePDF = exports.uploadFilesHelper = void 0;
 // import { Response } from "express";
 // import { sendErrorResponse } from "../interface/response.interface";
 const cloudinary_util_1 = __importDefault(require("./cloudinary.util"));
-const PDFParser = require("pdf2json");
+// const PDFParser = require("pdf2json");
 function uploadFilesHelper(files) {
     return __awaiter(this, void 0, void 0, function* () {
         let image_url = "";
@@ -62,7 +62,7 @@ function extractFilePDF(files) {
                 if (type in files && files[type].length > 0) {
                     try {
                         console.log(files[type][0]["buffer"]);
-                        text = yield getPDFText(files[type][0]["buffer"]);
+                        // text = await getPDFText(files[type][0]["buffer"]);
                         return { text };
                     }
                     catch (err) {
@@ -75,24 +75,23 @@ function extractFilePDF(files) {
     });
 }
 exports.extractFilePDF = extractFilePDF;
-function getPDFText(data) {
-    return new Promise((resolve, reject) => {
-        const pdfParser = new PDFParser(null, 1);
-        pdfParser.on('pdfParser_dataError', (errData) => {
-            reject(errData.parserError);
-        });
-        pdfParser.on('pdfParser_dataReady', (pdfData) => {
-            resolve(pdfParser.getRawTextContent());
-        });
-        if (!data || data.length === 0) {
-            reject('Invalid or empty PDF data');
-        }
-        try {
-            pdfParser.parseBuffer(data);
-        }
-        catch (err) {
-            reject(err);
-        }
-    });
-}
+// function getPDFText(data: Buffer): Promise<string> {
+//   return new Promise<string>((resolve, reject) => {
+//     const pdfParser = new PDFParser(null, 1);
+//     pdfParser.on('pdfParser_dataError', (errData: any) => {
+//       reject(errData.parserError);
+//     });
+//     pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
+//       resolve(pdfParser.getRawTextContent());
+//     });
+//     if (!data || data.length === 0) {
+//       reject('Invalid or empty PDF data');
+//     }
+//     try {
+//       pdfParser.parseBuffer(data);
+//     } catch (err) {
+//       reject(err);
+//     }
+//   });
+// }
 //# sourceMappingURL=helper.util.js.map

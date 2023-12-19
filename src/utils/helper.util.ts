@@ -1,7 +1,7 @@
 // import { Response } from "express";
 // import { sendErrorResponse } from "../interface/response.interface";
 import cloud, { IFoldersName } from "./cloudinary.util";
-const PDFParser = require("pdf2json");
+// const PDFParser = require("pdf2json");
 
 export async function uploadFilesHelper(files: any) {
   let image_url: string = "";
@@ -42,7 +42,7 @@ export async function extractFilePDF(files: any) {
       if (type in files && files[type].length > 0) {
         try {
           console.log(files[type][0]["buffer"]);
-          text = await getPDFText(files[type][0]["buffer"]);
+          // text = await getPDFText(files[type][0]["buffer"]);
           return { text }
 
         } catch (err) {
@@ -54,26 +54,26 @@ export async function extractFilePDF(files: any) {
   }
 }
 
-function getPDFText(data: Buffer): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    const pdfParser = new PDFParser(null, 1);
+// function getPDFText(data: Buffer): Promise<string> {
+//   return new Promise<string>((resolve, reject) => {
+//     const pdfParser = new PDFParser(null, 1);
 
-    pdfParser.on('pdfParser_dataError', (errData: any) => {
-      reject(errData.parserError);
-    });
+//     pdfParser.on('pdfParser_dataError', (errData: any) => {
+//       reject(errData.parserError);
+//     });
 
-    pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
-      resolve(pdfParser.getRawTextContent());
-    });
+//     pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
+//       resolve(pdfParser.getRawTextContent());
+//     });
 
-    if (!data || data.length === 0) {
-      reject('Invalid or empty PDF data');
-    }
+//     if (!data || data.length === 0) {
+//       reject('Invalid or empty PDF data');
+//     }
 
-    try {
-      pdfParser.parseBuffer(data);
-    } catch (err) {
-      reject(err);
-    }
-  });
-}
+//     try {
+//       pdfParser.parseBuffer(data);
+//     } catch (err) {
+//       reject(err);
+//     }
+//   });
+// }
