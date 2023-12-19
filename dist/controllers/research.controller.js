@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VerifyResearchById = exports.GetResearchAll = exports.RatingStarsResearch = exports.DeleteResearch = exports.UpdateResearch = exports.GetResearchDetailById = exports.GetResearchByUserId = exports.GetResearch = exports.Create = void 0;
+exports.UploadExtractFile = exports.VerifyResearchById = exports.GetResearchAll = exports.RatingStarsResearch = exports.DeleteResearch = exports.UpdateResearch = exports.GetResearchDetailById = exports.GetResearchByUserId = exports.GetResearch = exports.Create = void 0;
 const client_1 = require("@prisma/client");
 const response_interface_1 = require("../interface/response.interface");
 const helper_util_1 = require("../utils/helper.util");
@@ -31,7 +31,7 @@ function Create(req, res) {
             // variable
             const data = req.body ? req.body : {};
             // upload file
-            const { image_url, pdf_url, pdf_name } = yield (0, helper_util_1.uploadFilesHelper)(req.files, res);
+            const { image_url, pdf_url } = yield (0, helper_util_1.uploadFilesHelper)(req.files);
             // create data
             yield prisma.research.create({
                 data: {
@@ -46,7 +46,7 @@ function Create(req, res) {
                     rights: data.rights,
                     year_creation: new Date(data.year_creation) || new Date(),
                     file_url: pdf_url,
-                    file_name: pdf_name,
+                    file_name: data.file_name,
                     image_url: image_url,
                     tags_id: Number(data.tags_id || undefined),
                     user_id: data.user_id,
@@ -303,7 +303,7 @@ function UpdateResearch(req, res) {
             // variable
             const data = (_a = req.body) !== null && _a !== void 0 ? _a : {};
             // upload file
-            const { image_url, pdf_url, pdf_name } = yield (0, helper_util_1.uploadFilesHelper)(req.files, res);
+            const { image_url, pdf_url } = yield (0, helper_util_1.uploadFilesHelper)(req.files);
             // update data
             const queryResearch = yield prisma.research.update({
                 where: {
@@ -321,7 +321,7 @@ function UpdateResearch(req, res) {
                     rights: data.rights,
                     year_creation: data.year_creation,
                     tags_id: Number(data.tags_id || undefined),
-                    file_name: pdf_name,
+                    file_name: data.file_name,
                     file_url: pdf_url || undefined,
                     image_url: image_url || undefined,
                 },
@@ -512,4 +512,25 @@ function VerifyResearchById(req, res) {
     });
 }
 exports.VerifyResearchById = VerifyResearchById;
+function UploadExtractFile(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const exData = yield (0, helper_util_1.extractFilePDF)(req.files);
+            const data = {
+                exData,
+            };
+            if (!data)
+                return (0, response_interface_1.sendErrorResponse)(res, "NotFound", 404);
+            (0, response_interface_1.sendSuccessResponse)(res, "สำเร็จ.", data);
+        }
+        catch (err) {
+            console.error(err);
+            (0, response_interface_1.sendErrorResponse)(res, "Internal server error.");
+        }
+        finally {
+            yield prisma.$disconnect();
+        }
+    });
+}
+exports.UploadExtractFile = UploadExtractFile;
 //# sourceMappingURL=research.controller.js.map

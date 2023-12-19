@@ -33,7 +33,7 @@ function ChangeProfile(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const { id } = req.params;
-            const { profile_url } = yield (0, helper_util_1.uploadFilesHelper)(req.files, res);
+            const { profile_url } = yield (0, helper_util_1.uploadFilesHelper)(req.files);
             const query = yield prisma.user.update({
                 where: { id: id },
                 data: Object.assign({}, ((profile_url && profile_url !== "") && { profile: profile_url }))
@@ -198,7 +198,7 @@ function Update(req, res) {
         try {
             const { id } = req.params;
             const data = req.body;
-            const { profile_url } = yield (0, helper_util_1.uploadFilesHelper)(req.files, res);
+            const { profile_url } = yield (0, helper_util_1.uploadFilesHelper)(req.files);
             const query = yield prisma.user.update({
                 where: {
                     id: id,

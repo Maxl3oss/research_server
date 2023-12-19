@@ -4,6 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const multer_1 = __importDefault(require("multer"));
+// type DestinationCallback = (error: Error | null, destination: string) => void
+// type FileNameCallback = (error: Error | null, filename: string) => void
 const fileFilter = (request, file, callback) => {
     if (file.mimetype === 'image/png' ||
         file.mimetype === 'image/jpg' ||
@@ -18,8 +20,8 @@ const fileFilter = (request, file, callback) => {
 const uploads = (0, multer_1.default)({
     // storage: storage,
     fileFilter: fileFilter,
-    storage: multer_1.default.diskStorage({}),
-    // storage: multer.memoryStorage(),
+    // storage: multer.diskStorage({}),
+    storage: multer_1.default.memoryStorage(),
     limits: {
         fieldSize: 10 * 1024 * 1024,
         fileSize: 50000000, // Around 10MB
