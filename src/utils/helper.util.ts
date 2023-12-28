@@ -1,7 +1,4 @@
-// import { Response } from "express";
-// import { sendErrorResponse } from "../interface/response.interface";
 import cloud, { IFoldersName } from "./cloudinary.util";
-// const PDFParser = require("pdf2json");
 
 export async function uploadFilesHelper(files: any) {
   let image_url: string = "";
@@ -77,3 +74,14 @@ export async function extractFilePDF(files: any) {
 //     }
 //   });
 // }
+
+const prefix = [
+  { "id": "1", "name": "นาย" },
+  { "id": "2", "name": "นาง" },
+  { "id": "3", "name": "นางสาว" }
+];
+
+export function FindPrefix(prefixId: string | undefined | null): string {
+  if (!prefixId) return "";
+  return prefix.filter(curr => curr.id === prefixId.toString())[0].name;
+}

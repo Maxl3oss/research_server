@@ -7,6 +7,9 @@ interface RequestQuery {
   orderBy?: string;
   search?: string;
   filter?: string;
+  startDate?: string;
+  endDate?: string;
+  category?: string;
   [key: string]: any;
 }
 
@@ -50,7 +53,7 @@ export async function Create(req: Request, res: Response) {
 
 export async function GetResearch(req: Request, res: Response) {
   try {
-    const { orderBy = "asc", search = "", filter = "", ...raw }: RequestQuery = req.query;
+    const { orderBy = "asc", search = "", filter = "", startDate = "", endDate = "", category = "", ...raw }: RequestQuery = req.query;
     const page = Number(raw.page) || 1;
     const pageSize = Number(raw.pageSize) || 10;
 
@@ -81,60 +84,73 @@ export async function GetResearch(req: Request, res: Response) {
       take: pageSize,
       where: {
         status: 1,
+        ...((startDate !== "") && {
+          created_date: {
+            gte: startDate,
+          },
+        }),
+        ...((endDate !== "") && {
+          created_date: {
+            lte: endDate,
+          },
+        }),
+        ...((category !== "") && {
+          tags_id: Number(category),
+        }),
         ...combinedFilters,
       },
-      include: {
-        user_info: {
-          select: {
-            profile: true,
-            prefix: true,
+  include: {
+    user_info: {
+      select: {
+        profile: true,
+          prefix: true,
             first_name: true,
-            last_name: true,
+              last_name: true,
           }
-        },
-        tags_info: true,
-        Rating: true,
+    },
+    tags_info: true,
+      Rating: true,
         _count: {
-          select: {
-            Likes: true,
+      select: {
+        Likes: true,
           },
-        },
-      },
-      orderBy: {
+    },
+  },
+  orderBy: {
         ...(orderBy === "desc" && {
-          views: "desc",
-        }),
+      views: "desc",
+    }),
       }
-    });
+});
 
-    if (!queryResearch) return sendErrorResponse(res, "Research not found.", 404);
+if (!queryResearch) return sendErrorResponse(res, "Research not found.", 404);
 
-    // calculator avg
-    const researchWithAverageRating = queryResearch.map(({ Rating, ...researchItem }) => {
-      const ratings = Rating.map(ratingItem => parseFloat(ratingItem.rating.toString()));
-      const averageRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
-      return {
-        id: researchItem.id,
-        title: researchItem.title,
-        title_alternative: researchItem.title_alternative,
-        description: researchItem.description,
-        image_url: researchItem.image_url,
-        user_info: researchItem.user_info,
-        tags_info: researchItem.tags_info,
-        likes: researchItem._count.Likes,
-        views: researchItem.views,
-        average_rating: averageRating.toFixed(0)
-      };
-    });
+// calculator avg
+const researchWithAverageRating = queryResearch.map(({ Rating, ...researchItem }) => {
+  const ratings = Rating.map(ratingItem => parseFloat(ratingItem.rating.toString()));
+  const averageRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+  return {
+    id: researchItem.id,
+    title: researchItem.title,
+    title_alternative: researchItem.title_alternative,
+    description: researchItem.description,
+    image_url: researchItem.image_url,
+    user_info: researchItem.user_info,
+    tags_info: researchItem.tags_info,
+    views: researchItem.views,
+    likes: researchItem._count.Likes,
+    average_rating: averageRating.toFixed(0)
+  };
+});
 
-    sendSuccessResponse(res, "success", researchWithAverageRating, createPagination(page, pageSize, total));
+sendSuccessResponse(res, "success", researchWithAverageRating, createPagination(page, pageSize, total));
 
   } catch (err) {
-    console.error(err);
-    sendErrorResponse(res, "Internal server error.");
-  } finally {
-    await prisma.$disconnect();
-  }
+  console.error(err);
+  sendErrorResponse(res, "Internal server error.");
+} finally {
+  await prisma.$disconnect();
+}
 }
 
 export async function GetResearchByUserId(req: Request, res: Response) {
@@ -157,31 +173,54 @@ export async function GetResearchByUserId(req: Request, res: Response) {
         where: {
           user_id: userId,
           research_info: {
-            user_id: {
-              not: userId,
+            status: {
+              not: 2 | 0,
             }
           }
         },
         include: {
           research_info: {
-            select: {
-              id: true,
-              title: true,
-              image_url: true,
-              description: true,
-              user_info: {
+            // select: {
+            //   id: true,
+            //   title: true,
+            //   image_url: true,
+            //   description: true,
+            //   user_info: {
+            //     select: {
+            //       id: true,
+            //     }
+            //   }
+            // },
+            include: {
+              Rating: true,
+              _count: {
                 select: {
-                  id: true,
-                }
-              }
+                  Likes: true,
+                },
+              },
             }
           },
-        }
+        },
       });
 
       if (!queryResearchByLikeId) sendErrorResponse(res, "Research not found.", 404);
+
       const filData = queryResearchByLikeId.map((curr) => curr.research_info);
-      sendSuccessResponse(res, "success", { countResearch: countResearchUser, dataResearch: filData }, createPagination(page, pageSize, total), 200, true);
+      const researchWithAverageRating = filData.map(({ Rating, ...researchItem }) => {
+        const ratings = Rating.map(ratingItem => parseFloat(ratingItem.rating.toString()));
+        const averageRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+        return {
+          id: researchItem.id,
+          title: researchItem.title,
+          image_url: researchItem.image_url,
+          description: researchItem.description,
+          likes: researchItem._count.Likes,
+          status: researchItem.status,
+          views: researchItem.views,
+          average_rating: averageRating.toFixed(0)
+        };
+      });
+      sendSuccessResponse(res, "success", { countResearch: countResearchUser, dataResearch: researchWithAverageRating ?? [] }, createPagination(page, pageSize, total), 200, true);
 
     } else {
 
@@ -195,16 +234,40 @@ export async function GetResearchByUserId(req: Request, res: Response) {
           },
           user_id: req.params.userId || "",
         },
-        select: {
-          id: true,
-          title: true,
-          image_url: true,
-          description: true,
+        include: {
+          Rating: true,
+          _count: {
+            select: {
+              Likes: true,
+            },
+          },
         }
+        // select: {
+        //   id: true,
+        //   title: true,
+        //   image_url: true,
+        //   description: true,
+        // },
       });
 
       if (!queryResearch) return sendErrorResponse(res, "Research not found.", 404);
-      sendSuccessResponse(res, "success", { countResearch: countResearchUser, dataResearch: queryResearch }, createPagination(page, pageSize, total), 200, true);
+
+      const researchWithAverageRating = queryResearch.map(({ Rating, ...researchItem }) => {
+        const ratings = Rating.map(ratingItem => parseFloat(ratingItem.rating.toString()));
+        const averageRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+        return {
+          id: researchItem.id,
+          title: researchItem.title,
+          image_url: researchItem.image_url,
+          description: researchItem.description,
+          likes: researchItem._count.Likes,
+          status: researchItem.status,
+          views: researchItem.views,
+          average_rating: averageRating.toFixed(0)
+        };
+      });
+
+      sendSuccessResponse(res, "success", { countResearch: countResearchUser, dataResearch: researchWithAverageRating }, createPagination(page, pageSize, total), 200, true);
     }
 
   } catch (err) {
@@ -258,7 +321,7 @@ export async function GetResearchDetailById(req: Request, res: Response) {
     });
     // calculator avg
     const researchWithAverageRating = queryResearch.map(({ Rating, Likes, ...researchItem }) => {
-      return { ...researchItem, rating_id: Rating[0]?.id || null, average_rating: Rating[0]?.rating || 0, like: Likes?.length > 0, likes_count: query_like_count };
+      return { ...researchItem, rating_id: Rating[0]?.id || null, average_rating: Rating[0]?.rating || 0, like: Likes?.length > 0, likes: query_like_count };
     });
 
     if (queryResearch[0].user_id !== (req.params.userId || "")) {

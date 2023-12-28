@@ -29,6 +29,7 @@ const response_interface_1 = require("../interface/response.interface");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = require("jsonwebtoken");
 const nodemailer_1 = require("nodemailer");
+const helper_util_1 = require("../utils/helper.util");
 require("dotenv").config();
 const prisma = new client_1.PrismaClient();
 const TOKEN_SECRET = process.env.TOKEN_SECRET;
@@ -60,7 +61,7 @@ function Login(req, res) {
             if (GetUser && password && email) {
                 // Compare the provided plaintext password with the hashed password from the database
                 if ((GetUser === null || GetUser === void 0 ? void 0 : GetUser.status) === 2)
-                    return (0, response_interface_1.sendErrorResponse)(res, "Your email has not been verified.", 401);
+                    return (0, response_interface_1.sendErrorResponse)(res, "อีเมลของคุณยังไม่ยินยันตัวตน !!!", 202);
                 const isPasswordMatch = bcrypt_1.default.compareSync(password, GetUser.password);
                 if (isPasswordMatch) {
                     const token = (0, jsonwebtoken_1.sign)({ id: GetUser.id, role: GetUser.role_id }, TOKEN_SECRET, { expiresIn: '7d' });
@@ -68,7 +69,7 @@ function Login(req, res) {
                     return (0, response_interface_1.sendSuccessResponse)(res, "Login successful.", GetUserWithPassword);
                 }
             }
-            return (0, response_interface_1.sendErrorResponse)(res, "Email or password invalid.", 401);
+            return (0, response_interface_1.sendErrorResponse)(res, "อีเมลหรือรหัสผ่านไม่ถูกต้อง !!!.", 202);
         }
         catch (err) {
             console.error(err);
@@ -92,7 +93,7 @@ function Register(req, res) {
                 }
             });
             if (checkUser)
-                return (0, response_interface_1.sendErrorResponse)(res, `This email already exists!!`, 409);
+                return (0, response_interface_1.sendErrorResponse)(res, `อีเมลนี้ถูกใช้งานแล้ว !!`, 202);
             yield prisma.user.create({
                 data: {
                     prefix: data.prefix,
@@ -132,7 +133,7 @@ function verifyEmail(req, res) {
                     email: email,
                 },
                 data: {
-                    status: 2,
+                    status: 1,
                 }
             }) : false;
             if (!checkEmail || !updateStatus) {
@@ -165,6 +166,7 @@ function verifyEmail(req, res) {
 }
 exports.verifyEmail = verifyEmail;
 const SendEmail = (data, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     //send verify email
     const tokenMail = (0, jsonwebtoken_1.sign)({ email: data.email }, TOKEN_SECRET, {
         expiresIn: "1h",
@@ -177,21 +179,21 @@ const SendEmail = (data, res) => __awaiter(void 0, void 0, void 0, function* () 
         },
     });
     const option = {
-        from: `Verify your email < ${process.env.EMAIL} >`,
+        from: `Research -> verify your email < ${process.env.EMAIL} >`,
         to: data.email,
-        subject: "Research - verify your email",
+        subject: `Research -> verify your email < ${process.env.EMAIL} >`,
         html: `<div class="center">
-              <h1 style="padding: 35px 0px 0px;">${data.first_name} ${data.last_name}!</h1>
+              <h1 style="padding: 35px 0px 0px;">${(_a = (0, helper_util_1.FindPrefix)(data === null || data === void 0 ? void 0 : data.prefix)) !== null && _a !== void 0 ? _a : ""}${data === null || data === void 0 ? void 0 : data.first_name} ${data === null || data === void 0 ? void 0 : data.last_name}!</h1>
               <h2>Thanks for registering on our site.</h2>
               <h4>Please verify your mail to continue...</h4>
               <br />
               <br />
                 <a style="color: inherit; text-decoration: inherit; background-color: #222; color: white; border-radius: 20%; padding: 15px;" 
-                  href="${HOST_WEB}/api/auth/verify-email?email=${tokenMail}"
+                  href="${HOST_WEB}api/auth/verify-email?email=${tokenMail}"
                 >
-                  Verify Your Email
+                  ยืนยันอีเมล
                 </a>
-           </div>
+          </div>
     `
     };
     tranSporter.sendMail(option, (err, info) => {

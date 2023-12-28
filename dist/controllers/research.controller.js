@@ -67,7 +67,7 @@ exports.Create = Create;
 function GetResearch(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const _a = req.query, { orderBy = "asc", search = "", filter = "" } = _a, raw = __rest(_a, ["orderBy", "search", "filter"]);
+            const _a = req.query, { orderBy = "asc", search = "", filter = "", startDate = "", endDate = "", category = "" } = _a, raw = __rest(_a, ["orderBy", "search", "filter", "startDate", "endDate", "category"]);
             const page = Number(raw.page) || 1;
             const pageSize = Number(raw.pageSize) || 10;
             const skip = (page - 1) * pageSize;
@@ -92,7 +92,17 @@ function GetResearch(req, res) {
             const queryResearch = yield prisma.research.findMany({
                 skip,
                 take: pageSize,
-                where: Object.assign({ status: 1 }, combinedFilters),
+                where: Object.assign(Object.assign(Object.assign(Object.assign({ status: 1 }, ((startDate !== "") && {
+                    created_date: {
+                        gte: startDate,
+                    },
+                })), ((endDate !== "") && {
+                    created_date: {
+                        lte: endDate,
+                    },
+                })), ((category !== "") && {
+                    tags_id: Number(category),
+                })), combinedFilters),
                 include: {
                     user_info: {
                         select: {
@@ -129,8 +139,8 @@ function GetResearch(req, res) {
                     image_url: researchItem.image_url,
                     user_info: researchItem.user_info,
                     tags_info: researchItem.tags_info,
-                    likes: researchItem._count.Likes,
                     views: researchItem.views,
+                    likes: researchItem._count.Likes,
                     average_rating: averageRating.toFixed(0)
                 };
             });
@@ -165,31 +175,54 @@ function GetResearchByUserId(req, res) {
                     where: {
                         user_id: userId,
                         research_info: {
-                            user_id: {
-                                not: userId,
+                            status: {
+                                not: 2 | 0,
                             }
                         }
                     },
                     include: {
                         research_info: {
-                            select: {
-                                id: true,
-                                title: true,
-                                image_url: true,
-                                description: true,
-                                user_info: {
+                            // select: {
+                            //   id: true,
+                            //   title: true,
+                            //   image_url: true,
+                            //   description: true,
+                            //   user_info: {
+                            //     select: {
+                            //       id: true,
+                            //     }
+                            //   }
+                            // },
+                            include: {
+                                Rating: true,
+                                _count: {
                                     select: {
-                                        id: true,
-                                    }
-                                }
+                                        Likes: true,
+                                    },
+                                },
                             }
                         },
-                    }
+                    },
                 });
                 if (!queryResearchByLikeId)
                     (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
                 const filData = queryResearchByLikeId.map((curr) => curr.research_info);
-                (0, response_interface_1.sendSuccessResponse)(res, "success", { countResearch: countResearchUser, dataResearch: filData }, (0, response_interface_1.createPagination)(page, pageSize, total), 200, true);
+                const researchWithAverageRating = filData.map((_a) => {
+                    var { Rating } = _a, researchItem = __rest(_a, ["Rating"]);
+                    const ratings = Rating.map(ratingItem => parseFloat(ratingItem.rating.toString()));
+                    const averageRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+                    return {
+                        id: researchItem.id,
+                        title: researchItem.title,
+                        image_url: researchItem.image_url,
+                        description: researchItem.description,
+                        likes: researchItem._count.Likes,
+                        status: researchItem.status,
+                        views: researchItem.views,
+                        average_rating: averageRating.toFixed(0)
+                    };
+                });
+                (0, response_interface_1.sendSuccessResponse)(res, "success", { countResearch: countResearchUser, dataResearch: researchWithAverageRating !== null && researchWithAverageRating !== void 0 ? researchWithAverageRating : [] }, (0, response_interface_1.createPagination)(page, pageSize, total), 200, true);
             }
             else {
                 const total = yield prisma.research.count({ where: { status: { in: statusValues }, user_id: userId } });
@@ -202,16 +235,39 @@ function GetResearchByUserId(req, res) {
                         },
                         user_id: req.params.userId || "",
                     },
-                    select: {
-                        id: true,
-                        title: true,
-                        image_url: true,
-                        description: true,
+                    include: {
+                        Rating: true,
+                        _count: {
+                            select: {
+                                Likes: true,
+                            },
+                        },
                     }
+                    // select: {
+                    //   id: true,
+                    //   title: true,
+                    //   image_url: true,
+                    //   description: true,
+                    // },
                 });
                 if (!queryResearch)
                     return (0, response_interface_1.sendErrorResponse)(res, "Research not found.", 404);
-                (0, response_interface_1.sendSuccessResponse)(res, "success", { countResearch: countResearchUser, dataResearch: queryResearch }, (0, response_interface_1.createPagination)(page, pageSize, total), 200, true);
+                const researchWithAverageRating = queryResearch.map((_a) => {
+                    var { Rating } = _a, researchItem = __rest(_a, ["Rating"]);
+                    const ratings = Rating.map(ratingItem => parseFloat(ratingItem.rating.toString()));
+                    const averageRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+                    return {
+                        id: researchItem.id,
+                        title: researchItem.title,
+                        image_url: researchItem.image_url,
+                        description: researchItem.description,
+                        likes: researchItem._count.Likes,
+                        status: researchItem.status,
+                        views: researchItem.views,
+                        average_rating: averageRating.toFixed(0)
+                    };
+                });
+                (0, response_interface_1.sendSuccessResponse)(res, "success", { countResearch: countResearchUser, dataResearch: researchWithAverageRating }, (0, response_interface_1.createPagination)(page, pageSize, total), 200, true);
             }
         }
         catch (err) {
@@ -270,7 +326,7 @@ function GetResearchDetailById(req, res) {
             const researchWithAverageRating = queryResearch.map((_a) => {
                 var _b, _c;
                 var { Rating, Likes } = _a, researchItem = __rest(_a, ["Rating", "Likes"]);
-                return Object.assign(Object.assign({}, researchItem), { rating_id: ((_b = Rating[0]) === null || _b === void 0 ? void 0 : _b.id) || null, average_rating: ((_c = Rating[0]) === null || _c === void 0 ? void 0 : _c.rating) || 0, like: (Likes === null || Likes === void 0 ? void 0 : Likes.length) > 0, likes_count: query_like_count });
+                return Object.assign(Object.assign({}, researchItem), { rating_id: ((_b = Rating[0]) === null || _b === void 0 ? void 0 : _b.id) || null, average_rating: ((_c = Rating[0]) === null || _c === void 0 ? void 0 : _c.rating) || 0, like: (Likes === null || Likes === void 0 ? void 0 : Likes.length) > 0, likes: query_like_count });
             });
             if (queryResearch[0].user_id !== (req.params.userId || "")) {
                 yield prisma.research.update({

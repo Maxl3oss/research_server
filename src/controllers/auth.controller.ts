@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import { sign, verify } from "jsonwebtoken";
 import { createTransport } from "nodemailer";
 import { TokenPayloadVerify, UserEmail } from "../interface/user.interface";
+import { FindPrefix } from "../utils/helper.util";
 require("dotenv").config();
 
 const prisma = new PrismaClient();
@@ -39,7 +40,7 @@ async function Login(req: Request, res: Response) {
 
     if (GetUser && password && email) {
       // Compare the provided plaintext password with the hashed password from the database
-      if (GetUser?.status === 2) return sendErrorResponse(res, "Your email has not been verified.", 401);
+      if (GetUser?.status === 2) return sendErrorResponse(res, "อีเมลของคุณยังไม่ยินยันตัวตน !!!", 202);
 
       const isPasswordMatch = bcrypt.compareSync(password, GetUser.password);
 
@@ -51,7 +52,7 @@ async function Login(req: Request, res: Response) {
       }
     }
 
-    return sendErrorResponse(res, "Email or password invalid.", 401);
+    return sendErrorResponse(res, "อีเมลหรือรหัสผ่านไม่ถูกต้อง !!!.", 202);
 
   } catch (err) {
     console.error(err);
@@ -72,7 +73,8 @@ async function Register(req: Request, res: Response) {
         email: data.email,
       }
     })
-    if (checkUser) return sendErrorResponse(res, `This email already exists!!`, 409);
+    if (checkUser) return sendErrorResponse(res, `อีเมลนี้ถูกใช้งานแล้ว !!`, 202);
+    
     await prisma.user.create({
       data: {
         prefix: data.prefix,
@@ -111,7 +113,7 @@ async function verifyEmail(req: Request, res: Response) {
         email: email,
       },
       data: {
-        status: 2,
+        status: 1,
       }
     }) : false;
     if (!checkEmail || !updateStatus) {
@@ -159,21 +161,21 @@ const SendEmail = async (data: User, res: Response) => {
   });
 
   const option = {
-    from: `Verify your email < ${process.env.EMAIL} >`,
+    from: `Research -> verify your email < ${process.env.EMAIL} >`,
     to: data.email,
-    subject: "Research - verify your email",
+    subject: `Research -> verify your email < ${process.env.EMAIL} >`,
     html: `<div class="center">
-              <h1 style="padding: 35px 0px 0px;">${data.first_name} ${data.last_name}!</h1>
+              <h1 style="padding: 35px 0px 0px;">${FindPrefix(data?.prefix) ?? ""}${data?.first_name} ${data?.last_name}!</h1>
               <h2>Thanks for registering on our site.</h2>
               <h4>Please verify your mail to continue...</h4>
               <br />
               <br />
                 <a style="color: inherit; text-decoration: inherit; background-color: #222; color: white; border-radius: 20%; padding: 15px;" 
-                  href="${HOST_WEB}/api/auth/verify-email?email=${tokenMail}"
+                  href="${HOST_WEB}api/auth/verify-email?email=${tokenMail}"
                 >
-                  Verify Your Email
+                  ยืนยันอีเมล
                 </a>
-           </div>
+          </div>
     `
   };
   tranSporter.sendMail(option, (err, info) => {

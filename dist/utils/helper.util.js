@@ -12,11 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractFilePDF = exports.uploadFilesHelper = void 0;
-// import { Response } from "express";
-// import { sendErrorResponse } from "../interface/response.interface";
+exports.FindPrefix = exports.extractFilePDF = exports.uploadFilesHelper = void 0;
 const cloudinary_util_1 = __importDefault(require("./cloudinary.util"));
-// const PDFParser = require("pdf2json");
 function uploadFilesHelper(files) {
     return __awaiter(this, void 0, void 0, function* () {
         let image_url = "";
@@ -94,4 +91,15 @@ exports.extractFilePDF = extractFilePDF;
 //     }
 //   });
 // }
+const prefix = [
+    { "id": "1", "name": "นาย" },
+    { "id": "2", "name": "นาง" },
+    { "id": "3", "name": "นางสาว" }
+];
+function FindPrefix(prefixId) {
+    if (!prefixId)
+        return "";
+    return prefix.filter(curr => curr.id === prefixId.toString())[0].name;
+}
+exports.FindPrefix = FindPrefix;
 //# sourceMappingURL=helper.util.js.map
