@@ -84,14 +84,10 @@ export async function GetResearch(req: Request, res: Response) {
       take: pageSize,
       where: {
         status: 1,
-        ...((startDate !== "") && {
-          created_date: {
-            gte: startDate,
-          },
-        }),
-        ...((endDate !== "") && {
-          created_date: {
-            lte: endDate,
+        ...((startDate !== "" && endDate !== "") && {
+          year_creation: {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
           },
         }),
         ...((category !== "") && {

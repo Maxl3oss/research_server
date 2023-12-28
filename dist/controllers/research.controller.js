@@ -92,13 +92,10 @@ function GetResearch(req, res) {
             const queryResearch = yield prisma.research.findMany({
                 skip,
                 take: pageSize,
-                where: Object.assign(Object.assign(Object.assign(Object.assign({ status: 1 }, ((startDate !== "") && {
-                    created_date: {
-                        gte: startDate,
-                    },
-                })), ((endDate !== "") && {
-                    created_date: {
-                        lte: endDate,
+                where: Object.assign(Object.assign(Object.assign({ status: 1 }, ((startDate !== "" && endDate !== "") && {
+                    year_creation: {
+                        gte: new Date(startDate),
+                        lte: new Date(endDate),
                     },
                 })), ((category !== "") && {
                     tags_id: Number(category),
