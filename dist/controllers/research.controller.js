@@ -117,8 +117,10 @@ function GetResearch(req, res) {
                         },
                     },
                 },
-                orderBy: Object.assign({}, (orderBy === "desc" && {
+                orderBy: Object.assign(Object.assign({}, (orderBy === "desc" && {
                     views: "desc",
+                })), ((orderBy === "asc" || orderBy === "") && {
+                    created_date: "desc",
                 }))
             });
             if (!queryResearch)

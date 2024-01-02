@@ -34,8 +34,8 @@ exports.authenticateJWT = authenticateJWT;
 const authorizeAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = req.user;
-        if (user && user.role === 1 && user.id) {
-            const fillUser = yield prisma.user.findFirst({ where: { id: user.id, role_id: 1 } });
+        if (user && user.role === 2 && user.id) {
+            const fillUser = yield prisma.user.findFirst({ where: { id: user.id, role_id: 2 } });
             if (fillUser) {
                 return next();
             }

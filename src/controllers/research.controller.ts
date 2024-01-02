@@ -95,58 +95,61 @@ export async function GetResearch(req: Request, res: Response) {
         }),
         ...combinedFilters,
       },
-  include: {
-    user_info: {
-      select: {
-        profile: true,
-          prefix: true,
+      include: {
+        user_info: {
+          select: {
+            profile: true,
+            prefix: true,
             first_name: true,
-              last_name: true,
+            last_name: true,
           }
-    },
-    tags_info: true,
-      Rating: true,
+        },
+        tags_info: true,
+        Rating: true,
         _count: {
-      select: {
-        Likes: true,
+          select: {
+            Likes: true,
           },
-    },
-  },
-  orderBy: {
+        },
+      },
+      orderBy: {
         ...(orderBy === "desc" && {
-      views: "desc",
-    }),
+          views: "desc",
+        }),
+        ...((orderBy === "asc" || orderBy === "") && {
+          created_date: "desc",
+        }),
       }
-});
+    });
 
-if (!queryResearch) return sendErrorResponse(res, "Research not found.", 404);
+    if (!queryResearch) return sendErrorResponse(res, "Research not found.", 404);
 
-// calculator avg
-const researchWithAverageRating = queryResearch.map(({ Rating, ...researchItem }) => {
-  const ratings = Rating.map(ratingItem => parseFloat(ratingItem.rating.toString()));
-  const averageRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
-  return {
-    id: researchItem.id,
-    title: researchItem.title,
-    title_alternative: researchItem.title_alternative,
-    description: researchItem.description,
-    image_url: researchItem.image_url,
-    user_info: researchItem.user_info,
-    tags_info: researchItem.tags_info,
-    views: researchItem.views,
-    likes: researchItem._count.Likes,
-    average_rating: averageRating.toFixed(0)
-  };
-});
+    // calculator avg
+    const researchWithAverageRating = queryResearch.map(({ Rating, ...researchItem }) => {
+      const ratings = Rating.map(ratingItem => parseFloat(ratingItem.rating.toString()));
+      const averageRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+      return {
+        id: researchItem.id,
+        title: researchItem.title,
+        title_alternative: researchItem.title_alternative,
+        description: researchItem.description,
+        image_url: researchItem.image_url,
+        user_info: researchItem.user_info,
+        tags_info: researchItem.tags_info,
+        views: researchItem.views,
+        likes: researchItem._count.Likes,
+        average_rating: averageRating.toFixed(0)
+      };
+    });
 
-sendSuccessResponse(res, "success", researchWithAverageRating, createPagination(page, pageSize, total));
+    sendSuccessResponse(res, "success", researchWithAverageRating, createPagination(page, pageSize, total));
 
   } catch (err) {
-  console.error(err);
-  sendErrorResponse(res, "Internal server error.");
-} finally {
-  await prisma.$disconnect();
-}
+    console.error(err);
+    sendErrorResponse(res, "Internal server error.");
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
 export async function GetResearchByUserId(req: Request, res: Response) {
