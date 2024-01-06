@@ -25,6 +25,7 @@ router.post("/rating/:researchId", researchController.RatingStarsResearch);
 router.delete("/delete/:id", researchController.DeleteResearch);
 
 // admin
+router.get("/managements/get-dashboard", authenticateJWT, authorizeAdmin, researchController.GetDashboard);
 router.get("/managements/get-all", authenticateJWT, authorizeAdmin, researchController.GetResearchAll);
 router.post("/managements/verify-research/:id", authenticateJWT, authorizeAdmin, researchController.VerifyResearchById);
 router.put("/managements/update/:id", authenticateJWT, authorizeAdmin,

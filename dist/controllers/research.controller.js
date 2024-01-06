@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UploadExtractFile = exports.VerifyResearchById = exports.GetResearchAll = exports.RatingStarsResearch = exports.DeleteResearch = exports.UpdateResearch = exports.GetResearchDetailById = exports.GetResearchByUserId = exports.GetResearch = exports.Create = void 0;
+exports.GetDashboard = exports.UploadExtractFile = exports.VerifyResearchById = exports.GetResearchAll = exports.RatingStarsResearch = exports.DeleteResearch = exports.UpdateResearch = exports.GetResearchDetailById = exports.GetResearchByUserId = exports.GetResearch = exports.Create = void 0;
 const client_1 = require("@prisma/client");
 const response_interface_1 = require("../interface/response.interface");
 const helper_util_1 = require("../utils/helper.util");
@@ -588,4 +588,50 @@ function UploadExtractFile(req, res) {
     });
 }
 exports.UploadExtractFile = UploadExtractFile;
+function GetDashboard(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const researchCount = yield prisma.research.count();
+            const researchLikes = yield prisma.likes.count();
+            const totalViews = yield prisma.research.aggregate({ _sum: { views: true } });
+            const researchUnVerify = yield prisma.research.count({ where: { status: 2 } });
+            const researchVerify = yield prisma.research.count({ where: { status: 1 } });
+            const userCount = yield prisma.user.count();
+            const userVerify = yield prisma.user.count({ where: { status: 1 } });
+            const userUnVerify = yield prisma.user.count({ where: { status: 2 } });
+            const researchByCreatedDate = yield prisma.research.groupBy({
+                by: ["created_date"],
+                _count: {
+                    created_date: true,
+                },
+            });
+            const data = {
+                user: {
+                    labels: ["ยืนยันแล้ว", "ยังไม่ยืนยัน"],
+                    data: [userVerify, userUnVerify],
+                    total: userCount,
+                },
+                research: {
+                    labels: ["ยืนยันแล้ว", "ยังไม่ยืนยัน"],
+                    data: [researchVerify, researchUnVerify],
+                    total: researchCount,
+                    researchLikes,
+                    researchByCreatedDate,
+                    totalViews: totalViews._sum.views,
+                }
+            };
+            if (!data)
+                return (0, response_interface_1.sendErrorResponse)(res, "NotFound", 404);
+            (0, response_interface_1.sendSuccessResponse)(res, "สำเร็จ.", data);
+        }
+        catch (err) {
+            console.error(err);
+            (0, response_interface_1.sendErrorResponse)(res, "Internal server error.");
+        }
+        finally {
+            yield prisma.$disconnect();
+        }
+    });
+}
+exports.GetDashboard = GetDashboard;
 //# sourceMappingURL=research.controller.js.map

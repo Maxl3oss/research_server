@@ -572,3 +572,48 @@ export async function UploadExtractFile(req: Request, res: Response) {
   }
 }
 
+export async function GetDashboard(req: Request, res: Response) {
+  try {
+    const researchCount = await prisma.research.count();
+    const researchLikes = await prisma.likes.count();
+    const totalViews = await prisma.research.aggregate({ _sum: { views: true } });
+    const researchUnVerify = await prisma.research.count({ where: { status: 2 } });
+    const researchVerify = await prisma.research.count({ where: { status: 1 } });
+
+    const userCount = await prisma.user.count();
+    const userVerify = await prisma.user.count({ where: { status: 1 } });
+    const userUnVerify = await prisma.user.count({ where: { status: 2 } });
+    const researchByCreatedDate = await prisma.research.groupBy({
+      by: ["created_date"],
+      _count: {
+        created_date: true,
+      },
+    });
+
+    const data = {
+      user: {
+        labels: ["ยืนยันแล้ว", "ยังไม่ยืนยัน"],
+        data: [userVerify, userUnVerify],
+        total: userCount,
+      },
+      research: {
+        labels: ["ยืนยันแล้ว", "ยังไม่ยืนยัน"],
+        data: [researchVerify, researchUnVerify],
+        total: researchCount,
+        researchLikes,
+        researchByCreatedDate,
+        totalViews: totalViews._sum.views,
+      }
+    }
+
+    if (!data) return sendErrorResponse(res, "NotFound", 404);
+
+    sendSuccessResponse(res, "สำเร็จ.", data);
+
+  } catch (err) {
+    console.error(err);
+    sendErrorResponse(res, "Internal server error.");
+  } finally {
+    await prisma.$disconnect();
+  }
+}

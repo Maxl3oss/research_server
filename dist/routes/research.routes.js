@@ -40,6 +40,7 @@ router.get("/get/:userId", researchController.GetResearchByUserId);
 router.post("/rating/:researchId", researchController.RatingStarsResearch);
 router.delete("/delete/:id", researchController.DeleteResearch);
 // admin
+router.get("/managements/get-dashboard", authMiddleware_1.authenticateJWT, authMiddleware_1.authorizeAdmin, researchController.GetDashboard);
 router.get("/managements/get-all", authMiddleware_1.authenticateJWT, authMiddleware_1.authorizeAdmin, researchController.GetResearchAll);
 router.post("/managements/verify-research/:id", authMiddleware_1.authenticateJWT, authMiddleware_1.authorizeAdmin, researchController.VerifyResearchById);
 router.put("/managements/update/:id", authMiddleware_1.authenticateJWT, authMiddleware_1.authorizeAdmin, multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UpdateResearch);
