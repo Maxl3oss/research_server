@@ -25,7 +25,7 @@ function GetCommentsByIdResearch(req, res) {
                 skip,
                 take: pageSize,
                 where: {
-                    research_id: Number(id !== null && id !== void 0 ? id : 0),
+                    research_id: Number(id),
                 },
                 select: {
                     id: true,
@@ -72,7 +72,11 @@ function Create(req, res) {
         try {
             // variable
             const data = req.body;
+            // check user
+            const checkUserId = yield prisma.user.findFirstOrThrow({ where: { id: data.user_id } });
             // create data
+            if (!checkUserId)
+                return (0, response_interface_1.sendErrorResponse)(res, "ไม่พบไอดีผู้ใช้", 404);
             yield prisma.comments.create({
                 data: {
                     research_id: (_a = data.research_id) !== null && _a !== void 0 ? _a : 0,

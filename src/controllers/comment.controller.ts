@@ -16,7 +16,7 @@ export async function GetCommentsByIdResearch(req: Request, res: Response) {
       skip,
       take: pageSize,
       where: {
-        research_id: Number(id ?? 0),
+        research_id: Number(id),
       },
       select: {
         id: true,
@@ -60,7 +60,13 @@ export async function Create(req: Request, res: Response) {
   try {
     // variable
     const data: Comments = req.body;
+
+    // check user
+    const checkUserId = await prisma.user.findFirstOrThrow({ where: { id: data.user_id } })
+
     // create data
+    if (!checkUserId) return sendErrorResponse(res, "ไม่พบไอดีผู้ใช้", 404);
+
     await prisma.comments.create({
       data: {
         research_id: data.research_id ?? 0,
