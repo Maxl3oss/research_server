@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Create = exports.GetCommentsByIdResearch = void 0;
+exports.Delete = exports.Create = exports.GetCommentsByIdResearch = void 0;
 const client_1 = require("@prisma/client");
 const response_interface_1 = require("../interface/response.interface");
 const prisma = new client_1.PrismaClient();
@@ -33,6 +33,7 @@ function GetCommentsByIdResearch(req, res) {
                     created_at: true,
                     user_info: {
                         select: {
+                            id: true,
                             profile: true,
                             prefix: true,
                             first_name: true,
@@ -73,7 +74,7 @@ function Create(req, res) {
             // variable
             const data = req.body;
             // check user
-            const checkUserId = yield prisma.user.findFirstOrThrow({ where: { id: data.user_id } });
+            const checkUserId = yield prisma.user.findUnique({ where: { id: data.user_id } });
             // create data
             if (!checkUserId)
                 return (0, response_interface_1.sendErrorResponse)(res, "ไม่พบไอดีผู้ใช้", 404);
@@ -97,4 +98,27 @@ function Create(req, res) {
     });
 }
 exports.Create = Create;
+function Delete(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const { id = 0 } = req.params;
+            const existingComment = yield prisma.comments.findUnique({ where: { id: Number(id) } });
+            if (!existingComment) {
+                return (0, response_interface_1.sendErrorResponse)(res, "Comment not found", 404);
+            }
+            const query = yield prisma.comments.delete({ where: { id: Number(id !== null && id !== void 0 ? id : 0) } });
+            if (!query)
+                return (0, response_interface_1.sendErrorResponse)(res, "fail", 404);
+            (0, response_interface_1.sendSuccessResponse)(res, "delete research successful.", undefined);
+        }
+        catch (err) {
+            console.error(err);
+            (0, response_interface_1.sendErrorResponse)(res, "Internal server error.");
+        }
+        finally {
+            yield prisma.$disconnect();
+        }
+    });
+}
+exports.Delete = Delete;
 //# sourceMappingURL=comment.controller.js.map

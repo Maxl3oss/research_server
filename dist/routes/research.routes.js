@@ -47,6 +47,7 @@ router.post("/managements/verify-research/:id", authMiddleware_1.authenticateJWT
 router.put("/managements/update/:id", authMiddleware_1.authenticateJWT, authMiddleware_1.authorizeAdmin, multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UpdateResearch);
 // comments 
 router.get("/get-comments/:id", commentController.GetCommentsByIdResearch);
-router.post("/create-comment", commentController.Create);
+router.delete("/delete-comment/:id", authMiddleware_1.authenticateJWT, commentController.Delete);
+router.post("/create-comment", authMiddleware_1.authenticateJWT, commentController.Create);
 exports.default = router;
 //# sourceMappingURL=research.routes.js.map

@@ -35,6 +35,7 @@ router.put("/managements/update/:id", authenticateJWT, authorizeAdmin,
 
 // comments 
 router.get("/get-comments/:id", commentController.GetCommentsByIdResearch);
-router.post("/create-comment", commentController.Create);
+router.delete("/delete-comment/:id", authenticateJWT, commentController.Delete);
+router.post("/create-comment", authenticateJWT, commentController.Create);
 
 export default router;

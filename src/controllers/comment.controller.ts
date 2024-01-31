@@ -24,6 +24,7 @@ export async function GetCommentsByIdResearch(req: Request, res: Response) {
         created_at: true,
         user_info: {
           select: {
+            id: true,
             profile: true,
             prefix: true,
             first_name: true,
@@ -62,7 +63,7 @@ export async function Create(req: Request, res: Response) {
     const data: Comments = req.body;
 
     // check user
-    const checkUserId = await prisma.user.findFirstOrThrow({ where: { id: data.user_id } })
+    const checkUserId = await prisma.user.findUnique({ where: { id: data.user_id } })
 
     // create data
     if (!checkUserId) return sendErrorResponse(res, "ไม่พบไอดีผู้ใช้", 404);
@@ -77,6 +78,27 @@ export async function Create(req: Request, res: Response) {
     });
 
     sendSuccessResponse(res, "Create research successful.", undefined);
+
+  } catch (err) {
+    console.error(err);
+    sendErrorResponse(res, "Internal server error.");
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function Delete(req: Request, res: Response) {
+  try {
+    const { id = 0 } = req.params;
+
+    const existingComment = await prisma.comments.findUnique({ where: { id: Number(id) } });
+    if (!existingComment) {
+      return sendErrorResponse(res, "Comment not found", 404);
+    }
+
+    const query = await prisma.comments.delete({ where: { id: Number(id ?? 0) } });
+    if (!query) return sendErrorResponse(res, "fail", 404);
+    sendSuccessResponse(res, "delete research successful.", undefined);
 
   } catch (err) {
     console.error(err);
