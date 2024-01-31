@@ -395,26 +395,6 @@ function UpdateResearch(req, res) {
     });
 }
 exports.UpdateResearch = UpdateResearch;
-// export async function UploadImageToCloud(req: Request, res: Response) {
-//   try {
-//     let image = "", pdf = "";
-//     const files = req.files;
-//     // if (typeof file === "object" && file !== null && 'image' in file) {
-//     if (typeof files === "object" && files !== null && "image" in files) {
-//       await cloud.uploadImage(files.image[0]["path"]).then((url: any) => image = url);
-//     }
-//     if (typeof files === "object" && "pdf" in files) {
-//       await cloud.uploadPDF(files.pdf[0]["path"]).then((url: any) => pdf = url);
-//     }
-//     res.json({ mes: "ยังไง", image, pdf });
-//     // const result = await cloud..uploader.upload(file.path);
-//     // Handle the Cloudinary response (e.g., store the URL in a database)
-//     // res.json(result);
-//   } catch (err) {
-//     console.error(err);
-//     sendErrorResponse(res, "Internal server error.");
-//   }
-// }
 function DeleteResearch(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

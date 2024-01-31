@@ -28,21 +28,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const researchController = __importStar(require("../controllers/research.controller"));
+const commentController = __importStar(require("../controllers/comment.controller"));
 const router = express_1.default.Router();
 const multer_util_1 = __importDefault(require("../utils/multer.util"));
 const authMiddleware_1 = require("../middleware/authMiddleware");
-router.post("/create", multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.Create);
-router.post("/extract", multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UploadExtractFile);
-router.put("/update/:id", multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UpdateResearch);
+router.post("/create", authMiddleware_1.authenticateJWT, multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.Create);
+router.post("/extract", authMiddleware_1.authenticateJWT, multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UploadExtractFile);
+router.put("/update/:id", authMiddleware_1.authenticateJWT, multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UpdateResearch);
 router.get("/get-all", researchController.GetResearch);
 router.get("/get-detail/:userId", researchController.GetResearchDetailById);
 router.get("/get/:userId", researchController.GetResearchByUserId);
-router.post("/rating/:researchId", researchController.RatingStarsResearch);
+router.post("/rating/:researchId", authMiddleware_1.authenticateJWT, researchController.RatingStarsResearch);
 router.delete("/delete/:id", researchController.DeleteResearch);
 // admin
 router.get("/managements/get-dashboard", authMiddleware_1.authenticateJWT, authMiddleware_1.authorizeAdmin, researchController.GetDashboard);
 router.get("/managements/get-all", authMiddleware_1.authenticateJWT, authMiddleware_1.authorizeAdmin, researchController.GetResearchAll);
 router.post("/managements/verify-research/:id", authMiddleware_1.authenticateJWT, authMiddleware_1.authorizeAdmin, researchController.VerifyResearchById);
 router.put("/managements/update/:id", authMiddleware_1.authenticateJWT, authMiddleware_1.authorizeAdmin, multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UpdateResearch);
+// comments 
+router.get("/get-comments/:id", commentController.GetCommentsByIdResearch);
+router.post("/create-comment", commentController.Create);
 exports.default = router;
 //# sourceMappingURL=research.routes.js.map

@@ -24,6 +24,7 @@ model User {
   research   Research[]
   Likes      Likes[]
   Rating     Rating[]
+  Comments   Comments[]
 }
 
 //* ----------------------------------------
@@ -31,30 +32,31 @@ model User {
 //* status 0=delete, 1=use, 2=notVerified
 //* ----------------------------------------
 model Research {
-  id                Int      @id @default(autoincrement())
+  id                Int        @id @default(autoincrement())
   title             String
   title_alternative String?
   creator           String?
   subject           String
-  description       String   @db.VarChar(1020)
+  description       String     @db.LongText()
   publisher         String?
   contributor       String
   source            String
   rights            String
   year_creation     DateTime
-  created_date      DateTime @default(now())
-  updated_date      DateTime @updatedAt
-  status            Int      @default(2) @db.TinyInt
+  created_date      DateTime   @default(now())
+  updated_date      DateTime   @updatedAt
+  status            Int        @default(2) @db.TinyInt
   file_url          String
   file_name         String
   image_url         String
   user_id           String
-  views             Int      @default(0)
-  user_info         User     @relation(fields: [user_id], references: [id])
+  views             Int        @default(0)
+  user_info         User       @relation(fields: [user_id], references: [id])
   tags_id           Int
-  tags_info         Tags     @relation(fields: [tags_id], references: [id])
+  tags_info         Tags       @relation(fields: [tags_id], references: [id])
   Likes             Likes[]
   Rating            Rating[]
+  Comments          Comments[]
 
   @@index([user_id], name: "idx_user_research")
   @@index([tags_id], name: "idx_tags_research")
@@ -91,4 +93,18 @@ model Rating {
   @@index([user_id], name: "idx_user_rating")
   @@index([research_id], name: "idx_research_rating")
   @@index([user_id, research_id], name: "idx_user_research_rating")
+}
+
+model Comments {
+  id            Int      @id @default(autoincrement())
+  contents      String
+  created_at    DateTime
+  user_id       String
+  user_info     User     @relation(fields: [user_id], references: [id])
+  research_id   Int
+  research_info Research @relation(fields: [research_id], references: [id])
+
+  @@index([user_id], name: "idx_user_comment")
+  @@index([research_id], name: "idx_research_comment")
+  @@index([user_id, research_id], name: "idx_user_comments")
 }
