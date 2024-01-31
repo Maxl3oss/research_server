@@ -109,6 +109,7 @@ export async function GetResearch(req: Request, res: Response) {
         _count: {
           select: {
             Likes: true,
+            Comments: true,
           },
         },
       },
@@ -138,6 +139,7 @@ export async function GetResearch(req: Request, res: Response) {
         tags_info: researchItem.tags_info,
         views: researchItem.views,
         likes: researchItem._count.Likes,
+        comments: researchItem._count.Comments,
         average_rating: averageRating.toFixed(0)
       };
     });

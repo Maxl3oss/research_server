@@ -114,6 +114,7 @@ function GetResearch(req, res) {
                     _count: {
                         select: {
                             Likes: true,
+                            Comments: true,
                         },
                     },
                 },
@@ -140,6 +141,7 @@ function GetResearch(req, res) {
                     tags_info: researchItem.tags_info,
                     views: researchItem.views,
                     likes: researchItem._count.Likes,
+                    comments: researchItem._count.Comments,
                     average_rating: averageRating.toFixed(0)
                 };
             });
