@@ -189,7 +189,7 @@ const SendEmail = (data, res) => __awaiter(void 0, void 0, void 0, function* () 
               <br />
               <br />
                 <a style="color: inherit; text-decoration: inherit; background-color: #222; color: white; border-radius: 20%; padding: 15px;" 
-                  href="${HOST_WEB}api/auth/verify-email?email=${tokenMail}"
+                  href="${HOST_WEB}/api/auth/verify-email?email=${tokenMail}"
                 >
                   ยืนยันอีเมล
                 </a>
