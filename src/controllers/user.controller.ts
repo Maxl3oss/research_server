@@ -93,6 +93,7 @@ export async function GetUsersAll(req: Request, res: Response) {
         last_name: true,
         email: true,
         status: true,
+        role_id: true,
       }
     });
 
@@ -161,18 +162,21 @@ export async function Update(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const data: User = req.body;
-    const { profile_url } = await uploadFilesHelper(req.files);
+    const { profile_url } = await uploadFilesHelper(req.files) ?? "";
+
+    const prevData = await prisma.user.findUnique({ where: { id: id } });
 
     const query = await prisma.user.update({
       where: {
         id: id,
       },
       data: {
-        prefix: data.prefix,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        email: data.email,
-        ...(data.password && { password: await bcrypt.hash(data.password, 9) }),
+        prefix: data?.prefix || prevData?.prefix,
+        first_name: data?.first_name || prevData?.first_name,
+        last_name: data?.last_name || prevData?.last_name,
+        email: data?.email || prevData?.email,
+        role_id: Number(data?.role_id) || prevData?.role_id,
+        ...(data.password && profile_url !== "" && { password: await bcrypt.hash(data.password, 9) }),
         ...((profile_url && profile_url !== "") && { profile: profile_url }),
       }
     });

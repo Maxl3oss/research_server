@@ -118,6 +118,7 @@ function GetUsersAll(req, res) {
                     last_name: true,
                     email: true,
                     status: true,
+                    role_id: true,
                 }
             });
             if (!query)
@@ -194,16 +195,18 @@ function verifyUserById(req, res) {
 }
 exports.verifyUserById = verifyUserById;
 function Update(req, res) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const { id } = req.params;
             const data = req.body;
-            const { profile_url } = yield (0, helper_util_1.uploadFilesHelper)(req.files);
+            const { profile_url } = (_a = yield (0, helper_util_1.uploadFilesHelper)(req.files)) !== null && _a !== void 0 ? _a : "";
+            const prevData = yield prisma.user.findUnique({ where: { id: id } });
             const query = yield prisma.user.update({
                 where: {
                     id: id,
                 },
-                data: Object.assign(Object.assign({ prefix: data.prefix, first_name: data.first_name, last_name: data.last_name, email: data.email }, (data.password && { password: yield bcrypt_1.default.hash(data.password, 9) })), ((profile_url && profile_url !== "") && { profile: profile_url }))
+                data: Object.assign(Object.assign({ prefix: (data === null || data === void 0 ? void 0 : data.prefix) || (prevData === null || prevData === void 0 ? void 0 : prevData.prefix), first_name: (data === null || data === void 0 ? void 0 : data.first_name) || (prevData === null || prevData === void 0 ? void 0 : prevData.first_name), last_name: (data === null || data === void 0 ? void 0 : data.last_name) || (prevData === null || prevData === void 0 ? void 0 : prevData.last_name), email: (data === null || data === void 0 ? void 0 : data.email) || (prevData === null || prevData === void 0 ? void 0 : prevData.email), role_id: Number(data === null || data === void 0 ? void 0 : data.role_id) || (prevData === null || prevData === void 0 ? void 0 : prevData.role_id) }, (data.password && profile_url !== "" && { password: yield bcrypt_1.default.hash(data.password, 9) })), ((profile_url && profile_url !== "") && { profile: profile_url }))
             });
             if (!query)
                 return (0, response_interface_1.sendErrorResponse)(res, "Update user fail.", 404);
