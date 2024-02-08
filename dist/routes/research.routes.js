@@ -32,12 +32,12 @@ const commentController = __importStar(require("../controllers/comment.controlle
 const router = express_1.default.Router();
 const multer_util_1 = __importDefault(require("../utils/multer.util"));
 const authMiddleware_1 = require("../middleware/authMiddleware");
-router.post("/create", authMiddleware_1.authenticateJWT, multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.Create);
+router.post("/create", authMiddleware_1.authenticateJWT, multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), authMiddleware_1.authorizeAuthor, researchController.Create);
 router.post("/extract", authMiddleware_1.authenticateJWT, multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UploadExtractFile);
-router.put("/update/:id", authMiddleware_1.authenticateJWT, multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), researchController.UpdateResearch);
+router.put("/update/:id", authMiddleware_1.authenticateJWT, multer_util_1.default.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), authMiddleware_1.authorizeAuthor, researchController.UpdateResearch);
 router.get("/get-all", researchController.GetResearch);
 router.get("/get-detail/:userId", researchController.GetResearchDetailById);
-router.get("/get/:userId", researchController.GetResearchByUserId);
+router.get("/get/:userId", authMiddleware_1.authenticateJWT, researchController.GetResearchByUserId);
 router.post("/rating/:researchId", authMiddleware_1.authenticateJWT, researchController.RatingStarsResearch);
 router.delete("/delete/:id", researchController.DeleteResearch);
 // admin

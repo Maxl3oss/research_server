@@ -3,11 +3,11 @@ import * as researchController from "../controllers/research.controller";
 import * as commentController from "../controllers/comment.controller";
 const router = express.Router();
 import iMulter from "../utils/multer.util";
-import { authenticateJWT, authorizeAdmin } from '../middleware/authMiddleware';
+import { authenticateJWT, authorizeAdmin, authorizeAuthor } from '../middleware/authMiddleware';
 
 router.post("/create", authenticateJWT,
   iMulter.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]),
-  researchController.Create);
+  authorizeAuthor, researchController.Create);
 
 router.post("/extract", authenticateJWT,
   iMulter.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]),
@@ -15,11 +15,11 @@ router.post("/extract", authenticateJWT,
 
 router.put("/update/:id", authenticateJWT,
   iMulter.uploads.fields([{ name: 'image', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]),
-  researchController.UpdateResearch);
+  authorizeAuthor, researchController.UpdateResearch);
 
 router.get("/get-all", researchController.GetResearch);
 router.get("/get-detail/:userId", researchController.GetResearchDetailById);
-router.get("/get/:userId", researchController.GetResearchByUserId);
+router.get("/get/:userId", authenticateJWT, researchController.GetResearchByUserId);
 
 router.post("/rating/:researchId", authenticateJWT, researchController.RatingStarsResearch);
 

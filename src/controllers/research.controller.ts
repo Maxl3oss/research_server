@@ -176,7 +176,7 @@ export async function GetResearchByUserId(req: Request, res: Response) {
           research_info: {
             status: {
               not: 2 | 0,
-            }
+            },
           }
         },
         include: {

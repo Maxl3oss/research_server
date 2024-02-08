@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authorizeAdmin = exports.authenticateJWT = void 0;
+exports.authorizeAuthor = exports.authorizeAdmin = exports.authenticateJWT = void 0;
 const client_1 = require("@prisma/client");
 const jsonwebtoken_1 = require("jsonwebtoken");
 require("dotenv").config();
@@ -49,4 +49,22 @@ const authorizeAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.authorizeAdmin = authorizeAdmin;
+const authorizeAuthor = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = req.user;
+        if (user && (user.role === 3 || user.role === 2) && user.id) {
+            const fillUser = yield prisma.user.findFirst({ where: { id: user.id, role_id: 2 } });
+            if (fillUser) {
+                return next();
+            }
+        }
+        // If any condition fails, send a 403 Forbidden response
+        res.status(403).json({ message: 'Forbidden' });
+    }
+    catch (error) {
+        console.error('Error in authorizeAdmin middleware:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+exports.authorizeAuthor = authorizeAuthor;
 //# sourceMappingURL=authMiddleware.js.map

@@ -178,7 +178,7 @@ function GetResearchByUserId(req, res) {
                         research_info: {
                             status: {
                                 not: 2 | 0,
-                            }
+                            },
                         }
                     },
                     include: {
