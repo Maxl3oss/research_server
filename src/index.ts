@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
@@ -9,6 +9,9 @@ import userRoutes from "./routes/user.routes";
 import researchRoutes from "./routes/research.routes";
 import tagsRoutes from "./routes/tags.routes";
 import likesRoutes from "./routes/likes.routes";
+import iMulter from "./utils/multer.util";
+import { addWatermark } from "./utils/helper.util";
+import axios from 'axios';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -35,6 +38,29 @@ app.use("/api/user", userRoutes);
 app.use("/api/research", researchRoutes);
 app.use("/api/tags", tagsRoutes);
 app.use("/api/likes", likesRoutes);
+
+app.get('/api/watermark', async (req: Request, res: Response) => {
+  try {
+    const text = req.query.text || '';
+    const pdf_url = req.query.pdf_url || '';
+
+    if (pdf_url !== '' && text !== '') {
+      const response = await axios.get(pdf_url.toString(), { responseType: 'arraybuffer' });
+      const pdfBuffer = Buffer.from(response.data);
+      const modifiedPdfBytes = await addWatermark(pdfBuffer, text.toString());
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="modified.pdf"');
+      const buffer = Buffer.from(modifiedPdfBytes);
+      res.send(buffer);
+    } else {
+      res.status(404).send('PDF URL is not provided');
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error adding watermark');
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);

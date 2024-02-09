@@ -1,4 +1,5 @@
 import cloud, { IFoldersName } from "./cloudinary.util";
+import { PDFDocument, degrees, rgb } from "pdf-lib";
 
 export async function uploadFilesHelper(files: any) {
   let image_url: string = "";
@@ -51,30 +52,6 @@ export async function extractFilePDF(files: any) {
   }
 }
 
-// function getPDFText(data: Buffer): Promise<string> {
-//   return new Promise<string>((resolve, reject) => {
-//     const pdfParser = new PDFParser(null, 1);
-
-//     pdfParser.on('pdfParser_dataError', (errData: any) => {
-//       reject(errData.parserError);
-//     });
-
-//     pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
-//       resolve(pdfParser.getRawTextContent());
-//     });
-
-//     if (!data || data.length === 0) {
-//       reject('Invalid or empty PDF data');
-//     }
-
-//     try {
-//       pdfParser.parseBuffer(data);
-//     } catch (err) {
-//       reject(err);
-//     }
-//   });
-// }
-
 const prefix = [
   { "id": "1", "name": "นาย" },
   { "id": "2", "name": "นาง" },
@@ -85,3 +62,61 @@ export function FindPrefix(prefixId: string | undefined | null): string {
   if (!prefixId) return "";
   return prefix.filter(curr => curr.id === prefixId.toString())[0].name;
 }
+
+// export const addWatermark = async (pdfBytes: Buffer, watermarkText: string) => {
+//   try {
+//     const pdfDoc = await PDFDocument.load(pdfBytes);
+//     const pages = pdfDoc.getPages();
+//     const font = await pdfDoc.embedFont('Helvetica-Bold');
+
+//     for (const page of pages) {
+//       const { width, height } = page.getSize();
+//       const textWidth = font.widthOfTextAtSize(watermarkText, 20);
+//       page.drawText(watermarkText, {
+//         x: (width - textWidth) / 2,
+//         y: height / 2,
+//         size: 20,
+//         color: rgb(0.75, 0.75, 0.75),
+//         rotate: degrees(45),
+//       });
+//     }
+
+//     const savedPdf = await pdfDoc.save();
+//     return savedPdf;
+//   } catch (error) {
+//     console.error('Error adding watermark:', error);
+//     throw error; 
+//   }
+// };
+export const addWatermark = async (pdfBytes: Buffer, watermarkText: string) => {
+  try {
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const pages = pdfDoc.getPages();
+    const stampFont = await pdfDoc.embedFont('Helvetica-Bold');
+
+    for (const page of pages) {
+      const { width, height } = page.getSize();
+
+      // Calculate position for the watermark
+      const x = width / 3;
+      const y = height / 2;
+
+      // Draw the watermark text on the page
+      page.drawText(watermarkText, {
+        x: x,
+        y: y,
+        size: 50,
+        font: stampFont,
+        color: rgb(0.75, 0.75, 0.75),
+        opacity: 0.4,
+        rotate: degrees(45),
+      });
+    }
+
+    const modifiedPdfBytes = await pdfDoc.save();
+    return modifiedPdfBytes;
+  } catch (error) {
+    console.error('Error adding watermark:', error);
+    throw error;
+  }
+};
